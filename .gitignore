@@ -27,5 +27,5 @@ Thumbs.db
 *.swp
 *.a
 *.so
-./idea
-./cmake-*
+idea/
+cmake-*/
