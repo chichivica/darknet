@@ -245,8 +245,11 @@ void draw_detections(image im, detection *dets, int num, float thresh, char **na
         int class = -1;
         for(j = 0; j < classes; ++j){
             if (dets[i].prob[j] > thresh){
+                char number[10];
+                sprintf(number, "%.2lf", dets[i].prob[j]);
                 if (class < 0) {
                     strcat(labelstr, names[j]);
+                    strcat(labelstr, number);
                     class = j;
                 } else {
                     strcat(labelstr, ", ");
