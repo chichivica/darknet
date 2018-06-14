@@ -1,4 +1,5 @@
 #include "network.h"
+#include "image.h"
 #include "detection_layer.h"
 #include "region_layer.h"
 #include "cost_layer.h"
@@ -226,6 +227,17 @@ void demo(char *cfgfile, char *weightfile, float thresh, int cam_index, const ch
 
     if(!cap) error("Couldn't connect to webcam.\n");
 
+    double video_fps = cvGetCaptureProperty(cap, CV_CAP_PROP_FPS);
+    double video_width = cvGetCaptureProperty(cap, CV_CAP_PROP_FRAME_WIDTH);
+    double video_height = cvGetCaptureProperty(cap, CV_CAP_PROP_FRAME_HEIGHT);
+
+    CvVideoWriter *writer;
+    if (prefix){
+        writer = cvCreateVideoWriter(prefix, CV_FOURCC('D', 'I', 'V', 'X'), video_fps,
+                                     cvSize((int) video_width, (int) video_height), 1);
+    }
+
+
     buff[0] = get_image_from_stream(cap);
     buff[1] = copy_image(buff[0]);
     buff[2] = copy_image(buff[0]);
@@ -256,14 +268,22 @@ void demo(char *cfgfile, char *weightfile, float thresh, int cam_index, const ch
             demo_time = what_time_is_it_now();
             display_in_thread(0);
         }else{
-            char name[256];
-            sprintf(name, "%s_%08d", prefix, count);
-            save_image(buff[(buff_index + 1)%3], name);
+            IplImage *ipl = image_to_ipl(buff[(buff_index + 1)%3]);
+            cvWriteFrame(writer, ipl);
+            cvReleaseImage(&ipl);
+
+
+//            char name[256];
+//            sprintf(name, "%s_%08d", prefix, count);
+//            save_image(buff[(buff_index + 1)%3], name);
         }
         pthread_join(fetch_thread, 0);
         pthread_join(detect_thread, 0);
         ++count;
     }
+
+    cvReleaseVideoWriter(&writer);
+    cvReleaseCapture(&cap);
 }
 
 /*

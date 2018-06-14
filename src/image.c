@@ -592,6 +592,26 @@ void show_image(image p, const char *name)
 
 #ifdef OPENCV
 
+
+IplImage *image_to_ipl(image p) {
+    image copy = copy_image(p);
+    if (p.c == 3) rgbgr_image(copy);
+    int x, y, k;
+
+
+    IplImage *disp = cvCreateImage(cvSize(p.w, p.h), IPL_DEPTH_8U, p.c);
+    int step = disp->widthStep;
+    for (y = 0; y < p.h; ++y) {
+        for (x = 0; x < p.w; ++x) {
+            for (k = 0; k < p.c; ++k) {
+                disp->imageData[y * step + x * p.c + k] = (unsigned char) (get_pixel(copy, x, y, k) * 255);
+            }
+        }
+    }
+    free_image(copy);
+    return disp;
+}
+
 void ipl_into_image(IplImage* src, image im)
 {
     unsigned char *data = (unsigned char *)src->imageData;
