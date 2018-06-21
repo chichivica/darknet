@@ -123,6 +123,40 @@ void *detect_in_thread(void *ptr)
     //avg[i].objectness = dets[0][i].objectness;
     }
      */
+    int i, j;
+
+
+    for (i = 0; i < nboxes; ++i) {
+        int detected_class = -1;
+        float detected_probability = 0;
+
+        for (j = 0; j < demo_classes; ++j) {
+            if (dets[i].prob[j] > demo_thresh) {
+                if (dets[i].prob[j] > detected_probability) {
+                    char number[10];
+                    detected_probability = dets[i].prob[j];
+                    detected_class = j;
+                }
+
+            }
+        }
+        if (detected_class > 0) {
+            box b = dets[i].bbox;
+
+            double left  = (b.x-b.w/2.);
+            double right = (b.x+b.w/2.);
+            double top   = (b.y-b.h/2.);
+            double bot   = (b.y+b.h/2.);
+
+            printf("%s: %.0f%% [%.2lf %.2lf %.2lf %.2lf]\n",
+                   demo_names[detected_class],
+                   detected_probability * 100,
+                   left, right, top, bot
+            );
+        }
+
+    }
+
 
     if (nms > 0) do_nms_obj(dets, nboxes, l.classes, nms);
 
@@ -248,7 +282,7 @@ void demo(char *cfgfile, char *weightfile, float thresh, int cam_index, const ch
 
     int count = 0;
     if(!prefix){
-        cvNamedWindow("Demo", CV_WINDOW_NORMAL); 
+        cvNamedWindow("Demo", CV_WINDOW_NORMAL);
         if(fullscreen){
             cvSetWindowProperty("Demo", CV_WND_PROP_FULLSCREEN, CV_WINDOW_FULLSCREEN);
         } else {
