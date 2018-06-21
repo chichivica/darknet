@@ -37,6 +37,9 @@ static int demo_done = 0;
 static int demo_total = 0;
 double demo_time;
 
+static char* video_out_filename;
+static int global_frame = 0;
+
 detection *get_network_boxes(network *net, int w, int h, float thresh, float hier, int *map, int relative, int *num);
 
 int size_network(network *net)
@@ -123,7 +126,16 @@ void *detect_in_thread(void *ptr)
     //avg[i].objectness = dets[0][i].objectness;
     }
      */
+
+    if (nms > 0) do_nms_obj(dets, nboxes, l.classes, nms);
+
     int i, j;
+
+    char text_file_name[400];
+
+    sprintf(text_file_name, "%s.txt", video_out_filename);
+
+    FILE *f = fopen(text_file_name, "a");
 
 
     for (i = 0; i < nboxes; ++i) {
@@ -153,19 +165,24 @@ void *detect_in_thread(void *ptr)
                    detected_probability * 100,
                    left, right, top, bot
             );
+            fprintf(f, "%d\t%d\t%.8lf\t%.8lf\t%.8lf\t%.8lf\n",
+                    global_frame,
+                    detected_class,
+                    left, right, top, bot);
         }
 
     }
 
+    fclose(f);
 
-    if (nms > 0) do_nms_obj(dets, nboxes, l.classes, nms);
+
 
     printf("\033[2J");
     printf("\033[1;1H");
     printf("\nFPS:%.1f\n",fps);
     printf("Objects:\n\n");
     image display = buff[(buff_index+2) % 3];
-    draw_detections(display, dets, nboxes, demo_thresh, demo_names, demo_alphabet, demo_classes);
+//    draw_detections(display, dets, nboxes, demo_thresh, demo_names, demo_alphabet, demo_classes);
     free_detections(dets, nboxes);
 
     demo_index = (demo_index + 1)%demo_frame;
@@ -178,6 +195,8 @@ void *fetch_in_thread(void *ptr)
     int status = fill_image_from_stream(cap, buff[buff_index]);
     letterbox_image_into(buff[buff_index], net->w, net->h, buff_letter[buff_index]);
     if(status == 0) demo_done = 1;
+    global_frame++;
+
     return 0;
 }
 
@@ -267,6 +286,7 @@ void demo(char *cfgfile, char *weightfile, float thresh, int cam_index, const ch
 
     CvVideoWriter *writer;
     if (prefix){
+        video_out_filename = prefix;
         writer = cvCreateVideoWriter(prefix, CV_FOURCC('D', 'I', 'V', 'X'), video_fps,
                                      cvSize((int) video_width, (int) video_height), 1);
     }
