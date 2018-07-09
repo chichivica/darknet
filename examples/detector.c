@@ -1,4 +1,8 @@
 #include "darknet.h"
+#include <dirent.h>
+#define _GNU_SOURCE
+#include <stdio.h>
+#include <libgen.h>
 
 static int coco_ids[] = {1,2,3,4,5,6,7,8,9,10,11,13,14,15,16,17,18,19,20,21,22,23,24,25,27,28,31,32,33,34,35,36,37,38,39,40,41,42,43,44,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,67,70,72,73,74,75,76,77,78,79,80,81,82,84,85,86,87,88,89,90};
 
@@ -353,7 +357,7 @@ void validate_detector_flip(char *datacfg, char *cfgfile, char *weightfile, char
         if(fps) fclose(fps[j]);
     }
     if(coco){
-        fseek(fp, -2, SEEK_CUR); 
+        fseek(fp, -2, SEEK_CUR);
         fprintf(fp, "\n]\n");
         fclose(fp);
     }
@@ -479,7 +483,7 @@ void validate_detector(char *datacfg, char *cfgfile, char *weightfile, char *out
         if(fps) fclose(fps[j]);
     }
     if(coco){
-        fseek(fp, -2, SEEK_CUR); 
+        fseek(fp, -2, SEEK_CUR);
         fprintf(fp, "\n]\n");
         fclose(fp);
     }
@@ -558,6 +562,83 @@ void validate_detector_recall(char *cfgfile, char *weightfile)
     }
 }
 
+const char *get_filename_ext(const char *filename) {
+    const char *dot = strrchr(filename, '.');
+    if(!dot || dot == filename) return "";
+    return dot + 1;
+}
+
+void folder_detector(char *datacfg, char *cfgfile, char *weightfile, char *folder_name, float thresh, float hier_thresh,
+                     char *outfile, int fullscreen) {
+    list *options = read_data_cfg(datacfg);
+    char *name_list = option_find_str(options, "names", "data/names.list");
+    char **names = get_labels(name_list);
+
+    image **alphabet = load_alphabet();
+    network *net = load_network(cfgfile, weightfile, 0);
+    set_batch_network(net, 1);
+    srand(2222222);
+    double time;
+    char buff[256];
+    char *input = buff;
+    float nms=.45;
+    DIR *dir;
+    struct dirent *ent;
+
+    char folder_name_slash[1024];
+
+    if (folder_name[strlen(folder_name) - 1] != '/'){
+        sprintf(folder_name_slash, "%s/", folder_name);
+    } else {
+        sprintf(folder_name_slash, "%s", folder_name);
+    }
+
+    if ((dir = opendir(folder_name)) != NULL) {
+        /* print all the files and directories within directory */
+        while ((ent = readdir(dir)) != NULL) {
+            char *file_ext = get_filename_ext(ent->d_name);
+            char file_full_name[1024];
+            char inference_file[1024];
+            inference_file[0] = '\0';
+            sprintf(inference_file, "%s%s_inf", folder_name_slash, ent->d_name);
+
+            if (strcmp(file_ext, "jpg") == 0 ||
+                strcmp(file_ext, "png") == 0) {
+                printf("processing: %s\n", (ent->d_name));
+                sprintf(file_full_name, "%s%s", folder_name_slash, ent->d_name);
+
+                image im = load_image_color(file_full_name, 0, 0);
+                image sized = letterbox_image(im, net->w, net->h);
+                layer l = net->layers[net->n - 1];
+
+                float *X = sized.data;
+                time = what_time_is_it_now();
+                network_predict(net, X);
+                printf("%s: Predicted in %f seconds.\n", ent->d_name, what_time_is_it_now() - time);
+                int nboxes = 0;
+                detection *dets = get_network_boxes(net, im.w, im.h, thresh, hier_thresh, 0, 1, &nboxes);
+                //printf("%d\n", nboxes);
+                //if (nms) do_nms_obj(boxes, probs, l.w*l.h*l.n, l.classes, nms);
+                if (nms) do_nms_sort(dets, nboxes, l.classes, nms);
+                draw_detections(im, dets, nboxes, thresh, names, alphabet, l.classes);
+                free_detections(dets, nboxes);
+
+                printf("saving: %s\n", inference_file);
+                save_image(im, inference_file);
+
+
+                free_image(im);
+                free_image(sized);
+            }
+        }
+        closedir(dir);
+    } else {
+        /* could not open directory */
+        perror("could not open provided directory");
+        exit(1);
+    }
+
+}
 
 void test_detector(char *datacfg, char *cfgfile, char *weightfile, char *filename, float thresh, float hier_thresh, char *outfile, int fullscreen)
 {
@@ -609,7 +690,7 @@ void test_detector(char *datacfg, char *cfgfile, char *weightfile, char *filenam
         else{
             save_image(im, "predictions");
 #ifdef OPENCV
-            cvNamedWindow("predictions", CV_WINDOW_NORMAL); 
+            cvNamedWindow("predictions", CV_WINDOW_NORMAL);
             if(fullscreen){
                 cvSetWindowProperty("predictions", CV_WND_PROP_FULLSCREEN, CV_WINDOW_FULLSCREEN);
             }
@@ -839,6 +920,7 @@ void run_detector(int argc, char **argv)
     char *weights = (argc > 5) ? argv[5] : 0;
     char *filename = (argc > 6) ? argv[6]: 0;
     if(0==strcmp(argv[2], "test")) test_detector(datacfg, cfg, weights, filename, thresh, hier_thresh, outfile, fullscreen);
+    if(0==strcmp(argv[2], "folder")) folder_detector(datacfg, cfg, weights, filename, thresh, hier_thresh, outfile, fullscreen);
     else if(0==strcmp(argv[2], "train")) train_detector(datacfg, cfg, weights, gpus, ngpus, clear);
     else if(0==strcmp(argv[2], "valid")) validate_detector(datacfg, cfg, weights, outfile);
     else if(0==strcmp(argv[2], "valid2")) validate_detector_flip(datacfg, cfg, weights, outfile);
