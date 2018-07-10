@@ -568,6 +568,88 @@ const char *get_filename_ext(const char *filename) {
     return dot + 1;
 }
 
+
+void write_coordinates_to_json_file(
+            char *json_file, 
+            image im, 
+            detection *dets, 
+            int nboxes, 
+            float thresh,
+            char **names,
+            int classes)
+{
+    /* 
+    Save the coordinates of boxes to json file.                
+    ./darknet detector folder cfg/voc.data cfg/yolov3-voc.cfg yolov3.weights /ram/tmp/img
+    */
+    int debug = 1;    
+    int comma = 0;
+
+    if (debug) {
+        printf("file: %s\n", json_file);
+        printf("classes = %d\n", classes);    
+        printf("nboxes = %d\n", nboxes);
+        printf("thresh = %f\n", thresh);
+    }   
+
+    FILE *fp = fopen(json_file, "w");
+    fprintf(fp, "{\n");
+    fprintf(fp, "  \"image\": 1,\n");
+    fprintf(fp, "  \"samples\": [\n"); 
+
+    for (int i = 0; i < nboxes; ++i) {   
+
+        for(int j = 0; j < classes; ++j) {
+
+            float prob = dets[i].prob[j];
+
+            if (prob > thresh) { 
+
+                int class = j;  
+                box b = dets[i].bbox;
+       
+                float xmin = b.x - b.w / 2.0;
+                float xmax = b.x + b.w / 2.0;
+                float ymin = b.y - b.h / 2.0;
+                float ymax = b.y + b.h / 2.0;
+
+                if (xmin < 0) xmin = 0;
+                if (xmax > 1.0) xmax = 1.0;
+                if (ymin < 0) ymin = 0;
+                if (ymax > 1.0) ymax = 1.0;
+
+                if (debug) {    
+                    printf("box %d, class %d: prob = %f\n", i, j, prob);
+                    printf("x=%f, y=%f, w=%f, h=%f\n", b.x, b.y, b.w, b.h);
+                    printf("xmin = %f\n", xmin);  
+                    printf("xmax = %f\n", xmax);  
+                    printf("ymin = %f\n", ymin);  
+                    printf("ymax = %f\n", ymax);  
+                }
+
+                if (comma) fprintf(fp, ",\n");                
+                else comma = 1; 
+                fprintf(fp, "     {\n");
+                fprintf(fp, "        \"class\": %d,\n", class);
+                fprintf(fp, "        \"flags\": 0,\n");
+                fprintf(fp, "        \"rect\": [\n");
+                fprintf(fp, "          %f,\n", xmin);
+                fprintf(fp, "          %f,\n", xmax);
+                fprintf(fp, "          %f,\n", ymin);
+                fprintf(fp, "          %f\n",  ymax);
+                fprintf(fp, "        ]\n");                
+                fprintf(fp, "     }");
+
+            }
+        }
+    }
+
+    fprintf(fp, "\n   ]\n");
+    fprintf(fp, "}\n");
+    fclose(fp);    
+}
+
+
 void folder_detector(char *datacfg, char *cfgfile, char *weightfile, char *folder_name, float thresh, float hier_thresh,
                      char *outfile, int fullscreen) {
     list *options = read_data_cfg(datacfg);
@@ -599,8 +681,10 @@ void folder_detector(char *datacfg, char *cfgfile, char *weightfile, char *folde
             char *file_ext = get_filename_ext(ent->d_name);
             char file_full_name[1024];
             char inference_file[1024];
+            char json_file_full_path[1024];
             inference_file[0] = '\0';
             sprintf(inference_file, "%s%s_inf", folder_name_slash, ent->d_name);
+            sprintf(json_file_full_path, "%s%s.json", folder_name_slash, ent->d_name);
 
             if (strcmp(file_ext, "jpg") == 0 ||
                 strcmp(file_ext, "png") == 0) {
@@ -621,12 +705,16 @@ void folder_detector(char *datacfg, char *cfgfile, char *weightfile, char *folde
                 //if (nms) do_nms_obj(boxes, probs, l.w*l.h*l.n, l.classes, nms);
                 if (nms) do_nms_sort(dets, nboxes, l.classes, nms);
                 draw_detections(im, dets, nboxes, thresh, names, alphabet, l.classes);
-                free_detections(dets, nboxes);
 
                 printf("saving: %s\n", inference_file);
                 save_image(im, inference_file);
 
-
+                // write-coordinates
+   				printf("Write coordinates to json file: %s\n", json_file_full_path);
+                write_coordinates_to_json_file(
+                    json_file_full_path, im, dets, nboxes, thresh, names, l.classes);                
+   				// ------------
+                free_detections(dets, nboxes);
                 free_image(im);
                 free_image(sized);
             }
