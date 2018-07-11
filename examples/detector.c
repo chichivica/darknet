@@ -516,7 +516,7 @@ void validate_detector_recall(char *datacfg, char *cfgfile, char *weightfile,  f
     int i=0;
 
     float iou_thresh = .5;
-    float nms = .1;
+    float nms = .45;
 
     int total = 0;
     int correct = 0;
@@ -534,12 +534,14 @@ void validate_detector_recall(char *datacfg, char *cfgfile, char *weightfile,  f
     for(i = 0; i < m; ++i){
         char *path = paths[i];
         image orig = load_image_color(path, 0, 0);
-        image sized = resize_image(orig, net->w, net->h);
+//        image sized = resize_image(orig, net->w, net->h); letter_box = 0;
+        image sized = letterbox_image(orig, net->w, net->h); letter_box = 1;
         char *id = basecfg(path);
         network_predict(net, sized.data);
         int nboxes = 0;
-        detection *dets = get_network_boxes(net, sized.w, sized.h, thresh, .5, 0, 1, &nboxes, letter_box);
-        if (nms) do_nms_obj(dets, nboxes, 1, nms);
+        detection *dets = get_network_boxes(net, orig.w, orig.h, thresh, .5, 0, 1, &nboxes, letter_box);
+        if (nms) do_nms_obj(dets, nboxes, l.classes, nms);
+//        if (nms) do_nms_sort(dets, nboxes, l.classes, nms);
 
         char labelpath[4096];
         find_replace(path, "images", "labels", labelpath);
@@ -550,9 +552,19 @@ void validate_detector_recall(char *datacfg, char *cfgfile, char *weightfile,  f
         int num_labels = 0;
         box_label *truth = read_boxes(labelpath, &num_labels);
 
+//        image **alphabet = load_alphabet();
+//        draw_detections(orig, dets, nboxes, thresh, names, alphabet, l.classes);
+//        cvNamedWindow("predictions", CV_WINDOW_NORMAL);
+//        show_image(orig, "predictions");
+//        cvWaitKey(0);
+//        cvDestroyAllWindows();
+
         for (k = 0; k < nboxes; ++k) { //across detections
+            int dets_k_class = max_index(dets[k].prob, dets[k].classes);
+            double dets_k_prob = dets[k].prob[dets_k_class];
+
             if (dets[k].objectness > thresh) {
-                int dets_k_class = max_index(dets[k].prob, dets[k].classes);
+//                int dets_k_class = max_index(dets[k].prob, dets[k].classes);
 
                 ++proposals;
                 float best_iou = 0;
@@ -584,6 +596,9 @@ void validate_detector_recall(char *datacfg, char *cfgfile, char *weightfile,  f
             total_objects ++;
             for(k = 0; k < nboxes; ++k){ //over detections
                 float iou = box_iou(dets[k].bbox, t);
+                int dets_k_class = max_index(dets[k].prob, dets[k].classes);
+                double dets_k_prob = dets[k].prob[dets_k_class];
+
                 if(dets[k].objectness > thresh && iou > best_iou){
                     best_iou = iou;
                     best_fit_index = k;
@@ -810,7 +825,8 @@ void test_detector(char *datacfg, char *cfgfile, char *weightfile, char *filenam
             strtok(input, "\n");
         }
         image im = load_image_color(input,0,0);
-        image sized = resize_image(im, net->w, net->h);
+//        image sized = resize_image(im, net->w, net->h); letter_box = 0;
+        image sized = letterbox_image(im, net->w, net->h); letter_box = 1;
         //image sized = resize_image(im, net->w, net->h);
         //image sized2 = resize_max(im, net->w);
         //image sized = crop_image(sized2, -((net->w - sized2.w)/2), -((net->h - sized2.h)/2), net->w, net->h);
@@ -825,8 +841,8 @@ void test_detector(char *datacfg, char *cfgfile, char *weightfile, char *filenam
         int nboxes = 0;
         detection *dets = get_network_boxes(net, im.w, im.h, thresh, hier_thresh, 0, 1, &nboxes, letter_box);
         //printf("%d\n", nboxes);
-        //if (nms) do_nms_obj(boxes, probs, l.w*l.h*l.n, l.classes, nms);
-        if (nms) do_nms_sort(dets, nboxes, l.classes, nms);
+        if (nms) do_nms_obj(dets, nboxes, l.classes, nms);
+//        if (nms) do_nms_sort(dets, nboxes, l.classes, nms);
         draw_detections(im, dets, nboxes, thresh, names, alphabet, l.classes);
         free_detections(dets, nboxes);
         if(outfile){
