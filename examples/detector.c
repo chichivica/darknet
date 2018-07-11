@@ -3,6 +3,7 @@
 #define _GNU_SOURCE
 #include <stdio.h>
 #include <libgen.h>
+#include <layer.h>
 
 static int coco_ids[] = {1,2,3,4,5,6,7,8,9,10,11,13,14,15,16,17,18,19,20,21,22,23,24,25,27,28,31,32,33,34,35,36,37,38,39,40,41,42,43,44,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,67,70,72,73,74,75,76,77,78,79,80,81,82,84,85,86,87,88,89,90};
 
@@ -490,7 +491,7 @@ void validate_detector(char *datacfg, char *cfgfile, char *weightfile, char *out
     fprintf(stderr, "Total Detection Time: %f Seconds\n", what_time_is_it_now() - start);
 }
 
-void validate_detector_recall(char *datacfg, char *cfgfile, char *weightfile)
+void validate_detector_recall(char *datacfg, char *cfgfile, char *weightfile,  float thresh)
 {
     list *options = read_data_cfg(datacfg);
 
@@ -514,14 +515,20 @@ void validate_detector_recall(char *datacfg, char *cfgfile, char *weightfile)
     int m = plist->size;
     int i=0;
 
-    float thresh = .001;
     float iou_thresh = .5;
-    float nms = .4;
+    float nms = .1;
 
     int total = 0;
     int correct = 0;
     int proposals = 0;
     float avg_iou = 0;
+
+    int false_positive = 0;
+    int false_negative = 0;
+    int true_positive = 0;
+    int incorrect_label = 0;
+
+    int total_objects = 0;
 
     for(i = 0; i < m; ++i){
         char *path = paths[i];
@@ -541,28 +548,69 @@ void validate_detector_recall(char *datacfg, char *cfgfile, char *weightfile)
 
         int num_labels = 0;
         box_label *truth = read_boxes(labelpath, &num_labels);
-        for(k = 0; k < nboxes; ++k){
-            if(dets[k].objectness > thresh){
+
+        for (k = 0; k < nboxes; ++k) { //across detections
+            if (dets[k].objectness > thresh) {
+                int dets_k_class = max_index(dets[k].prob, dets[k].classes);
+
                 ++proposals;
+                float best_iou = 0;
+                int best_fit_index = -1;
+
+                for (j = 0; j < num_labels; ++j) {
+                    box t = {truth[j].x, truth[j].y, truth[j].w, truth[j].h};
+                    float iou = box_iou(dets[k].bbox, t);
+                    if (iou > best_iou) {
+                        best_iou = iou;
+                        best_fit_index = j;
+                    }
+                }
+                if (best_iou < iou_thresh) {
+                    false_positive++;
+//                    printf("false positive: %s\n", path);
+                } else if (truth[best_fit_index].id != dets_k_class) {
+                    incorrect_label++;
+                }
+
+
             }
         }
-        for (j = 0; j < num_labels; ++j) {
+        for (j = 0; j < num_labels; ++j) { //over ground truth objects
             ++total;
             box t = {truth[j].x, truth[j].y, truth[j].w, truth[j].h};
             float best_iou = 0;
-            for(k = 0; k < l.w*l.h*l.n; ++k){
+            int best_fit_index = -1;
+            total_objects ++;
+            for(k = 0; k < nboxes; ++k){ //over detections
                 float iou = box_iou(dets[k].bbox, t);
                 if(dets[k].objectness > thresh && iou > best_iou){
                     best_iou = iou;
+                    best_fit_index = k;
                 }
             }
             avg_iou += best_iou;
             if(best_iou > iou_thresh){
                 ++correct;
+                int dets_k_class = max_index(dets[best_fit_index].prob, dets[best_fit_index].classes);
+                if (dets_k_class == truth[j].id){
+                    true_positive ++;
+                }
+
+            } else {
+                false_negative ++;
             }
         }
 
-        fprintf(stderr, "%5d %5d %5d\tRPs/Img: %.2f\tIOU: %.2f%%\tRecall:%.2f%%\n", i, correct, total, (float)proposals/(i+1), avg_iou*100/total, 100.*correct/total);
+        fprintf(stderr, "%5d %5d %5d\tRPs/Img: %.2f\tIOU: %.2f%%\tRecall:%.2f%%\n", i, correct, total,
+                (float)proposals/(i+1), avg_iou*100/total, 100.*correct/total);
+        printf("false positive: %d incorrect label: %d false negative: %d true positive %d [total: %d]\n",
+               false_positive,
+               incorrect_label,
+               false_negative,
+               true_positive,
+               total_objects
+        );
+
         free(id);
         free_image(orig);
         free_image(sized);
@@ -577,10 +625,10 @@ const char *get_filename_ext(const char *filename) {
 
 
 void write_coordinates_to_json_file(
-            char *json_file, 
-            image im, 
-            detection *dets, 
-            int nboxes, 
+            char *json_file,
+            image im,
+            detection *dets,
+            int nboxes,
             float thresh,
             char **names,
             int classes)
@@ -589,32 +637,32 @@ void write_coordinates_to_json_file(
     Save the coordinates of boxes to json file.                
     ./darknet detector folder cfg/voc.data cfg/yolov3-voc.cfg yolov3.weights /ram/tmp/img
     */
-    int debug = 1;    
+    int debug = 1;
     int comma = 0;
 
     if (debug) {
         printf("file: %s\n", json_file);
-        printf("classes = %d\n", classes);    
+        printf("classes = %d\n", classes);
         printf("nboxes = %d\n", nboxes);
         printf("thresh = %f\n", thresh);
-    }   
+    }
 
     FILE *fp = fopen(json_file, "w");
     fprintf(fp, "{\n");
     fprintf(fp, "  \"image\": 1,\n");
-    fprintf(fp, "  \"samples\": [\n"); 
+    fprintf(fp, "  \"samples\": [\n");
 
-    for (int i = 0; i < nboxes; ++i) {   
+    for (int i = 0; i < nboxes; ++i) {
 
         for(int j = 0; j < classes; ++j) {
 
             float prob = dets[i].prob[j];
 
-            if (prob > thresh) { 
+            if (prob > thresh) {
 
-                int class = j;  
+                int class = j;
                 box b = dets[i].bbox;
-       
+
                 float xmin = b.x - b.w / 2.0;
                 float xmax = b.x + b.w / 2.0;
                 float ymin = b.y - b.h / 2.0;
@@ -625,17 +673,17 @@ void write_coordinates_to_json_file(
                 if (ymin < 0) ymin = 0;
                 if (ymax > 1.0) ymax = 1.0;
 
-                if (debug) {    
+                if (debug) {
                     printf("box %d, class %d: prob = %f\n", i, j, prob);
                     printf("x=%f, y=%f, w=%f, h=%f\n", b.x, b.y, b.w, b.h);
-                    printf("xmin = %f\n", xmin);  
-                    printf("xmax = %f\n", xmax);  
-                    printf("ymin = %f\n", ymin);  
-                    printf("ymax = %f\n", ymax);  
+                    printf("xmin = %f\n", xmin);
+                    printf("xmax = %f\n", xmax);
+                    printf("ymin = %f\n", ymin);
+                    printf("ymax = %f\n", ymax);
                 }
 
-                if (comma) fprintf(fp, ",\n");                
-                else comma = 1; 
+                if (comma) fprintf(fp, ",\n");
+                else comma = 1;
                 fprintf(fp, "     {\n");
                 fprintf(fp, "        \"class\": %d,\n", class);
                 fprintf(fp, "        \"flags\": 0,\n");
@@ -644,7 +692,7 @@ void write_coordinates_to_json_file(
                 fprintf(fp, "          %f,\n", xmax);
                 fprintf(fp, "          %f,\n", ymin);
                 fprintf(fp, "          %f\n",  ymax);
-                fprintf(fp, "        ]\n");                
+                fprintf(fp, "        ]\n");
                 fprintf(fp, "     }");
 
             }
@@ -653,7 +701,7 @@ void write_coordinates_to_json_file(
 
     fprintf(fp, "\n   ]\n");
     fprintf(fp, "}\n");
-    fclose(fp);    
+    fclose(fp);
 }
 
 
@@ -719,7 +767,7 @@ void folder_detector(char *datacfg, char *cfgfile, char *weightfile, char *folde
                 // write-coordinates
    				printf("Write coordinates to json file: %s\n", json_file_full_path);
                 write_coordinates_to_json_file(
-                    json_file_full_path, im, dets, nboxes, thresh, names, l.classes);                
+                    json_file_full_path, im, dets, nboxes, thresh, names, l.classes);
    				// ------------
                 free_detections(dets, nboxes);
                 free_image(im);
@@ -789,7 +837,7 @@ void test_detector(char *datacfg, char *cfgfile, char *weightfile, char *filenam
             if(fullscreen){
                 cvSetWindowProperty("predictions", CV_WND_PROP_FULLSCREEN, CV_WINDOW_FULLSCREEN);
             }
-            show_image(im, "predictions");
+            show_image(sized, "predictions");
             cvWaitKey(0);
             cvDestroyAllWindows();
 #endif
@@ -1019,7 +1067,7 @@ void run_detector(int argc, char **argv)
     else if(0==strcmp(argv[2], "train")) train_detector(datacfg, cfg, weights, gpus, ngpus, clear);
     else if(0==strcmp(argv[2], "valid")) validate_detector(datacfg, cfg, weights, outfile);
     else if(0==strcmp(argv[2], "valid2")) validate_detector_flip(datacfg, cfg, weights, outfile);
-    else if(0==strcmp(argv[2], "recall")) validate_detector_recall(datacfg, cfg, weights);
+    else if(0==strcmp(argv[2], "recall")) validate_detector_recall(datacfg, cfg, weights, thresh);
     else if(0==strcmp(argv[2], "demo")) {
         list *options = read_data_cfg(datacfg);
         int classes = option_find_int(options, "classes", 20);
