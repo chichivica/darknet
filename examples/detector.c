@@ -339,7 +339,7 @@ void validate_detector_flip(char *datacfg, char *cfgfile, char *weightfile, char
             int w = val[t].w;
             int h = val[t].h;
             int num = 0;
-            detection *dets = get_network_boxes(net, w, h, thresh, .5, map, 0, &num);
+            detection *dets = get_network_boxes(net, w, h, thresh, .5, map, 0, &num, 1);
             if (nms) do_nms_sort(dets, num, classes, nms);
             if (coco){
                 print_cocos(fp, path, dets, num, classes, w, h);
@@ -465,7 +465,7 @@ void validate_detector(char *datacfg, char *cfgfile, char *weightfile, char *out
             int w = val[t].w;
             int h = val[t].h;
             int nboxes = 0;
-            detection *dets = get_network_boxes(net, w, h, thresh, .5, map, 0, &nboxes);
+            detection *dets = get_network_boxes(net, w, h, thresh, .5, map, 0, &nboxes, 1);
             if (nms) do_nms_sort(dets, nboxes, classes, nms);
             if (coco){
                 print_cocos(fp, path, dets, nboxes, classes, w, h);
@@ -529,6 +529,7 @@ void validate_detector_recall(char *datacfg, char *cfgfile, char *weightfile,  f
     int incorrect_label = 0;
 
     int total_objects = 0;
+    int letter_box = 0;
 
     for(i = 0; i < m; ++i){
         char *path = paths[i];
@@ -537,7 +538,7 @@ void validate_detector_recall(char *datacfg, char *cfgfile, char *weightfile,  f
         char *id = basecfg(path);
         network_predict(net, sized.data);
         int nboxes = 0;
-        detection *dets = get_network_boxes(net, sized.w, sized.h, thresh, .5, 0, 1, &nboxes);
+        detection *dets = get_network_boxes(net, sized.w, sized.h, thresh, .5, 0, 1, &nboxes, letter_box);
         if (nms) do_nms_obj(dets, nboxes, 1, nms);
 
         char labelpath[4096];
@@ -755,7 +756,7 @@ void folder_detector(char *datacfg, char *cfgfile, char *weightfile, char *folde
                 network_predict(net, X);
                 printf("%s: Predicted in %f seconds.\n", ent->d_name, what_time_is_it_now() - time);
                 int nboxes = 0;
-                detection *dets = get_network_boxes(net, im.w, im.h, thresh, hier_thresh, 0, 1, &nboxes);
+                detection *dets = get_network_boxes(net, im.w, im.h, thresh, hier_thresh, 0, 1, &nboxes, 1);
                 //printf("%d\n", nboxes);
                 //if (nms) do_nms_obj(boxes, probs, l.w*l.h*l.n, l.classes, nms);
                 if (nms) do_nms_sort(dets, nboxes, l.classes, nms);
@@ -797,6 +798,7 @@ void test_detector(char *datacfg, char *cfgfile, char *weightfile, char *filenam
     char buff[256];
     char *input = buff;
     float nms=.45;
+    int letter_box = 0;
     while(1){
         if(filename){
             strncpy(input, filename, 256);
@@ -808,7 +810,7 @@ void test_detector(char *datacfg, char *cfgfile, char *weightfile, char *filenam
             strtok(input, "\n");
         }
         image im = load_image_color(input,0,0);
-        image sized = letterbox_image(im, net->w, net->h);
+        image sized = resize_image(im, net->w, net->h);
         //image sized = resize_image(im, net->w, net->h);
         //image sized2 = resize_max(im, net->w);
         //image sized = crop_image(sized2, -((net->w - sized2.w)/2), -((net->h - sized2.h)/2), net->w, net->h);
@@ -821,7 +823,7 @@ void test_detector(char *datacfg, char *cfgfile, char *weightfile, char *filenam
         network_predict(net, X);
         printf("%s: Predicted in %f seconds.\n", input, what_time_is_it_now()-time);
         int nboxes = 0;
-        detection *dets = get_network_boxes(net, im.w, im.h, thresh, hier_thresh, 0, 1, &nboxes);
+        detection *dets = get_network_boxes(net, im.w, im.h, thresh, hier_thresh, 0, 1, &nboxes, letter_box);
         //printf("%d\n", nboxes);
         //if (nms) do_nms_obj(boxes, probs, l.w*l.h*l.n, l.classes, nms);
         if (nms) do_nms_sort(dets, nboxes, l.classes, nms);
@@ -837,7 +839,7 @@ void test_detector(char *datacfg, char *cfgfile, char *weightfile, char *filenam
             if(fullscreen){
                 cvSetWindowProperty("predictions", CV_WND_PROP_FULLSCREEN, CV_WINDOW_FULLSCREEN);
             }
-            show_image(sized, "predictions");
+            show_image(im, "predictions");
             cvWaitKey(0);
             cvDestroyAllWindows();
 #endif
