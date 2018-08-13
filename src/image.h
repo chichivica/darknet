@@ -60,6 +60,7 @@ image make_empty_image(int w, int h, int c);
 void copy_image_into(image src, image dest);
 
 image get_image_layer(image m, int l);
+image get_piece_of_image_rectangle(image source, double det_x, double det_y, double det_w, double det_h);
 
 #endif
 
