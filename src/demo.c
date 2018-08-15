@@ -133,7 +133,10 @@ void *detect_in_thread(void *ptr)
     printf("\nFPS:%.1f\n",fps);
     printf("Objects:\n\n");
     image display = buff[(buff_index+2) % 3];
+
     //--------------- ***
+    int top = 1;
+    
     for(int i = 0; i < nboxes; ++i){
         //char labelstr[4096] = {0};
         //int class = -1;
