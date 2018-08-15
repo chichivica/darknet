@@ -138,6 +138,8 @@ void *detect_in_thread(void *ptr)
         //char labelstr[4096] = {0};
         //int class = -1;
 
+        double thresh = 0.05;
+
         int any_class = 0;
         for(int j = 0; j < l.classes; ++j) {
             if (dets[i].prob[j] > thresh) any_class = 1;
