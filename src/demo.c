@@ -136,7 +136,8 @@ void *detect_in_thread(void *ptr)
 
     //--------------- ***
     int top = 1;
-    
+    int *indexes = calloc(top, sizeof(int));
+
     for(int i = 0; i < nboxes; ++i){
         //char labelstr[4096] = {0};
         //int class = -1;
