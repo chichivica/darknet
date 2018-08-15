@@ -1655,11 +1655,11 @@ image get_piece_of_image_rectangle(image source, double det_x, double det_y, dou
     c = source.c;
 
     int r_w, r_h;
-    int left = (int) (det_x - det_w * 0.5) * w;
-    int right = (int) (det_x + det_w * 0.5) * w;
+    int left = (int) ((det_x - det_w * 0.5) * w);
+    int right = (int) ((det_x + det_w * 0.5) * w);
 
-    int top = (int) (det_y - det_h * 0.5) * h;
-    int bot = (int) (det_y + det_h * 0.5) * h;
+    int top = (int) ((det_y - det_h * 0.5) * h);
+    int bot = (int) ((det_y + det_h * 0.5) * h);
 
     if (left < 0) left = 0;
     if (right > w - 1) right = w - 1;

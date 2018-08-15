@@ -37,6 +37,8 @@ static int demo_done = 0;
 static int demo_total = 0;
 double demo_time;
 
+network *classifier_net; // ******
+
 detection *get_network_boxes(network *net, int w, int h, float thresh, float hier, int *map, int relative, int *num, int letter);
 
 int size_network(network *net)
@@ -131,6 +133,40 @@ void *detect_in_thread(void *ptr)
     printf("\nFPS:%.1f\n",fps);
     printf("Objects:\n\n");
     image display = buff[(buff_index+2) % 3];
+    //--------------- ***
+    for(int i = 0; i < nboxes; ++i){
+        //char labelstr[4096] = {0};
+        //int class = -1;
+
+        int any_class = 0;
+        for(int j = 0; j < l.classes; ++j) {
+            if (dets[i].prob[j] > thresh) any_class = 1;
+        }
+
+        if (any_class) {
+            double det_x = dets[i].bbox.x;
+            double det_y = dets[i].bbox.y;
+            double det_w = dets[i].bbox.w;
+            double det_h = dets[i].bbox.h;
+            image im_box = 
+                get_piece_of_image_rectangle(im, det_x, det_y, det_w, det_h);
+
+            image r_box = letterbox_image(im_box, classifier_net->w, classifier_net->h);
+            float *X_box = r_box.data;
+            float *predictions = network_predict(classifier_net, X_box);
+            if(classifier_net->hierarchy) hierarchy_predictions(predictions, classifier_net->outputs, classifier_net->hierarchy, 1, 1);
+            top_k(predictions, classifier_net->outputs, top, indexes);
+            for(i = 0; i < top; ++i) {
+                int index = indexes[i];
+                //if(net->hierarchy) printf("%d, %s: %f, parent: %s \n",index, names[index], predictions[index], (net->hierarchy->parent[index] >= 0) ? names[net->hierarchy->parent[index]] : "Root");
+                //else printf("%s: %f\n",names[index], predictions[index]);
+                printf("classifier: %5.2f%%: %s\n", predictions[index]*100, names[index]);
+            }
+            if(r_box.data != im_box.data) free_image(r_box);
+            free_image(im_box);            
+        }
+    }
+    //---------------
     draw_detections(display, dets, nboxes, demo_thresh, demo_names, demo_alphabet, demo_classes);
     free_detections(dets, nboxes);
 
@@ -195,6 +231,12 @@ void demo(char *cfgfile, char *weightfile, float thresh, int cam_index, const ch
     printf("Demo\n");
     net = load_network(cfgfile, weightfile, 0);
     set_batch_network(net, 1);
+    //-------------
+    char *classifier_cfgfile = "cfg/money_tiny_test.cfg";
+    char *classifier_weightfile = "../money_tiny_459.weights"; 
+    classifier_net = load_network(classifier_cfgfile, classifier_weightfile, 0);
+    set_batch_network(classifier_net, 1);
+    //-------------
     pthread_t detect_thread;
     pthread_t fetch_thread;
 
