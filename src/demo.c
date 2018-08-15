@@ -151,7 +151,7 @@ void *detect_in_thread(void *ptr)
             double det_w = dets[i].bbox.w;
             double det_h = dets[i].bbox.h;
             image im_box = 
-                get_piece_of_image_rectangle(im, det_x, det_y, det_w, det_h);
+                get_piece_of_image_rectangle(display, det_x, det_y, det_w, det_h);
 
             image r_box = letterbox_image(im_box, classifier_net->w, classifier_net->h);
             float *X_box = r_box.data;
