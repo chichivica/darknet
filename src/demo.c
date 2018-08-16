@@ -141,8 +141,7 @@ void *detect_in_thread(void *ptr)
 
     for(int i = 0; i < nboxes; ++i){
         //char labelstr[4096] = {0};
-        //int class = -1;
-        printf("i=%d", i);
+        //int class = -1;        
 
         double thresh = 0.05;
 
@@ -152,6 +151,9 @@ void *detect_in_thread(void *ptr)
         }
 
         if (any_class) {
+
+            printf("i=%d: ", i);
+
             double det_x = dets[i].bbox.x;
             double det_y = dets[i].bbox.y;
             double det_w = dets[i].bbox.w;
