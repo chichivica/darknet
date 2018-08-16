@@ -142,6 +142,7 @@ void *detect_in_thread(void *ptr)
     for(int i = 0; i < nboxes; ++i){
         //char labelstr[4096] = {0};
         //int class = -1;
+        printf("i=%d", i);
 
         double thresh = 0.05;
 
@@ -163,7 +164,7 @@ void *detect_in_thread(void *ptr)
             float *predictions = network_predict(classifier_net, X_box);
             if(classifier_net->hierarchy) hierarchy_predictions(predictions, classifier_net->outputs, classifier_net->hierarchy, 1, 1);
             top_k(predictions, classifier_net->outputs, top, indexes);
-            for(i = 0; i < top; ++i) {
+            for(i = lf0; i < top; ++i) {
                 int index = indexes[i];
                 //if(net->hierarchy) printf("%d, %s: %f, parent: %s \n",index, names[index], predictions[index], (net->hierarchy->parent[index] >= 0) ? names[net->hierarchy->parent[index]] : "Root");
                 //else printf("%s: %f\n",names[index], predictions[index]);
