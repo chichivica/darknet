@@ -135,6 +135,7 @@ void *detect_in_thread(void *ptr)
     image display = buff[(buff_index+2) % 3];
 
     //--------------- ***
+    /*
     int top = 1;
     int *indexes = calloc(top, sizeof(int));
     char **names = demo_names;
@@ -162,24 +163,23 @@ void *detect_in_thread(void *ptr)
                 get_piece_of_image_rectangle(display, det_x, det_y, det_w, det_h);
 
             int class_index = predict_class(im_box, classifier_net);
-            /*
+            
 
-            image r_box = letterbox_image(im_box, classifier_net->w, classifier_net->h);
-            float *X_box = r_box.data;
-            float *predictions = network_predict(classifier_net, X_box);
-            if(classifier_net->hierarchy) hierarchy_predictions(predictions, classifier_net->outputs, classifier_net->hierarchy, 1, 1);
-            top_k(predictions, classifier_net->outputs, top, indexes);
-            for(int k = 0; k < top; ++k) {
-                int index = indexes[k];
-                //if(net->hierarchy) printf("%d, %s: %f, parent: %s \n",index, names[index], predictions[index], (net->hierarchy->parent[index] >= 0) ? names[net->hierarchy->parent[index]] : "Root");
-                //else printf("%s: %f\n",names[index], predictions[index]);
-                printf("classifier: %5.2f%%: %s\n", predictions[index]*100, names[index]);
-            }
-            if(r_box.data != im_box.data) free_image(r_box);
-            free_image(im_box); 
-            */           
+            //image r_box = letterbox_image(im_box, classifier_net->w, classifier_net->h);
+            //float *X_box = r_box.data;
+            //float *predictions = network_predict(classifier_net, X_box);
+            //if(classifier_net->hierarchy) hierarchy_predictions(predictions, classifier_net->outputs, classifier_net->hierarchy, 1, 1);
+            //top_k(predictions, classifier_net->outputs, top, indexes);
+            //for(int k = 0; k < top; ++k) {
+             //   int index = indexes[k];
+                //printf("classifier: %5.2f%%: %s\n", predictions[index]*100, names[index]);
+            //}
+            //if(r_box.data != im_box.data) free_image(r_box);
+            //free_image(im_box); 
+                      
         }
     }
+    */
     //---------------
     draw_detections(display, dets, nboxes, demo_thresh, demo_names, demo_alphabet, demo_classes);
     free_detections(dets, nboxes);
