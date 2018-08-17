@@ -18,7 +18,7 @@ int predict_class(image im, network *classifier_net)
     if(classifier_net->hierarchy) hierarchy_predictions(predictions, classifier_net->outputs, classifier_net->hierarchy, 1, 1);
     top_k(predictions, classifier_net->outputs, top, indexes);
     int class_index = indexes[0];
-    printf("classifier: %5.2f%%: class_id=%s\n", predictions[class_index]*100, class_index);
+    printf("classifier: %5.2f%%: class_id=%d;\n", predictions[class_index]*100, class_index);
     if(r.data != im.data) free_image(r);
     free_image(im); 
 
