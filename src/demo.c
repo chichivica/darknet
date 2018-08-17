@@ -162,8 +162,9 @@ void *detect_in_thread(void *ptr)
             image im_box = 
                 get_piece_of_image_rectangle(display, det_x, det_y, det_w, det_h);
 
-            int class_index = predict_class(im_box, classifier_net);
-            
+            float prob;
+            int class_index = predict_class(im_box, classifier_net, &prob);
+            printf("classifier: class=%d [%5.2f%%];\n", class_index, prob);
 
             //image r_box = letterbox_image(im_box, classifier_net->w, classifier_net->h);
             //float *X_box = r_box.data;
