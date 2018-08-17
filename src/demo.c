@@ -164,7 +164,7 @@ void *detect_in_thread(void *ptr)
 
             float prob;
             int class_index = predict_class(im_box, classifier_net, &prob);
-            printf("classifier: class=%d [%5.2f%%];\n", class_index, prob);
+            printf("classifier: class=%d (%s) [%5.2f%%];\n", class_index, names[class_index], prob);
 
             //image r_box = letterbox_image(im_box, classifier_net->w, classifier_net->h);
             //float *X_box = r_box.data;
