@@ -161,6 +161,9 @@ void *detect_in_thread(void *ptr)
             image im_box = 
                 get_piece_of_image_rectangle(display, det_x, det_y, det_w, det_h);
 
+            int class_index = predict_class(im_box, classifier_net);
+            /*
+
             image r_box = letterbox_image(im_box, classifier_net->w, classifier_net->h);
             float *X_box = r_box.data;
             float *predictions = network_predict(classifier_net, X_box);
@@ -173,7 +176,8 @@ void *detect_in_thread(void *ptr)
                 printf("classifier: %5.2f%%: %s\n", predictions[index]*100, names[index]);
             }
             if(r_box.data != im_box.data) free_image(r_box);
-            free_image(im_box);            
+            free_image(im_box); 
+            */           
         }
     }
     //---------------
