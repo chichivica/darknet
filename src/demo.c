@@ -135,7 +135,6 @@ void *detect_in_thread(void *ptr)
     image display = buff[(buff_index+2) % 3];
 
     //--------------- ***
-    /*
     int top = 1;
     int *indexes = calloc(top, sizeof(int));
     char **names = demo_names;
@@ -179,7 +178,6 @@ void *detect_in_thread(void *ptr)
                       
         }
     }
-    */
     //---------------
     draw_detections(display, dets, nboxes, demo_thresh, demo_names, demo_alphabet, demo_classes);
     free_detections(dets, nboxes);
