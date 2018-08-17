@@ -7,6 +7,7 @@
 #include "parser.h"
 #include "box.h"
 #include "image.h"
+#include "classifier.h"
 #include "demo.h"
 #include <sys/time.h>
 

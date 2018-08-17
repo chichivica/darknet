@@ -29,3 +29,5 @@ Thumbs.db
 *.so
 idea/
 cmake-*/
+
+Makefile
