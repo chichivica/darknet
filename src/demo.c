@@ -139,6 +139,7 @@ void *detect_in_thread(void *ptr)
     int top = 1;
     int *indexes = calloc(top, sizeof(int));
     char **names = demo_names;
+    int money_class_index = 0;
 
     for(int i = 0; i < nboxes; ++i){
         //char labelstr[4096] = {0};
@@ -177,6 +178,9 @@ void *detect_in_thread(void *ptr)
             printf("classifier:   class=%d (%s) [%5.2f%%];\n", class_index, names[class_index], prob);
             printf("YOLO predict: class=%d (%s) [%5.2f%%];\n", class_index_max_prob, names[class_index_max_prob], max_prob);
 
+            if ((class_index == money_class_index) && (class_index_max_prob == money_class_index)) {
+              printf("This is money!\n");
+            }
 
             //image r_box = letterbox_image(im_box, classifier_net->w, classifier_net->h);
             //float *X_box = r_box.data;
