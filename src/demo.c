@@ -147,10 +147,20 @@ void *detect_in_thread(void *ptr)
         double thresh = 0.05;
 
         int any_class = 0;
+        int own_class_index = -1; // 
+        int max_prob = 0;
         for(int j = 0; j < l.classes; ++j) {
-            if (dets[i].prob[j] > thresh) any_class = 1;
+            if (dets[i].prob[j] > thresh) {
+              any_class = 1;
+              // use native (yolo) classifier:
+              if (dets[i].prob[j] > max_prob) {
+                max_prob = dets[i].prob[j];
+                class_index_max_prob = j;
+              }
+            }
         }
 
+        // use external classifier (tiny, darknet19 or else)
         if (any_class) {
 
             printf("i=%d: ", i);
@@ -164,7 +174,9 @@ void *detect_in_thread(void *ptr)
 
             float prob;
             int class_index = predict_class(im_box, classifier_net, &prob);
-            printf("classifier: class=%d (%s) [%5.2f%%];\n", class_index, names[class_index], prob);
+            printf("classifier:   class=%d (%s) [%5.2f%%];\n", class_index, names[class_index], prob);
+            printf("YOLO predict: class=%d (%s) [%5.2f%%];\n", class_index_max_prob, names[class_index_max_prob], max_prob);
+
 
             //image r_box = letterbox_image(im_box, classifier_net->w, classifier_net->h);
             //float *X_box = r_box.data;
