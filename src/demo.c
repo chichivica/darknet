@@ -148,8 +148,9 @@ void *detect_in_thread(void *ptr)
         double thresh = 0.05;
 
         int any_class = 0;
-        int own_class_index = -1; // 
-        int max_prob = 0;
+        int class_index_max_prob = -1; // 
+        int max_prob = 0;        
+
         for(int j = 0; j < l.classes; ++j) {
             if (dets[i].prob[j] > thresh) {
               any_class = 1;
