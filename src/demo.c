@@ -189,9 +189,14 @@ void *detect_in_thread(void *ptr)
               printf("This is money!\n");
             }
 
+            if ((class_index == money_class_index)&& (prob >= thresh_money)) {
+              //printf("This is money!\n");
+              int linewidth = 4;
+              draw_box_width_relative(display, det_x, det_y, det_w, det_h, linewidth, 1.0, 0.0, 0.0);
+            }            
+
             if (class_index_max_prob == money_class_index) {
-              // a little pause
-              
+              // a little pause              
             }
 
             //image r_box = letterbox_image(im_box, classifier_net->w, classifier_net->h);

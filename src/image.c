@@ -207,6 +207,27 @@ void draw_box_width(image a, int x1, int y1, int x2, int y2, int w, float r, flo
     }
 }
 
+//----------
+
+void draw_box_width_relative(image im, float x, float y, float w, float h, int linewidth, float r, float g, float b)
+{
+    int left  = (x - w/2.) * im.w  - 10;
+    int right = (x + w/2.) * im.w  + 10;
+    int top   = (y - h/2.) * im.h  - 10;
+    int bot   = (y + h/2.) * im.h  + 10;
+
+    if(left < 0) left = 0;
+    if(right > im.w-1) right = im.w - 1;
+    if(top < 0) top = 0;
+    if(bot > im.h-1) bot = im.h - 1;
+
+    //float red = 1.0, green = 0.0, blue = 0.0;
+    draw_box_width(im, left, top, right, bot, linewidth, r, g, b);
+}
+
+//---------
+
+
 void draw_bbox(image a, box bbox, int w, float r, float g, float b)
 {
     int left  = (bbox.x-bbox.w/2)*a.w;
