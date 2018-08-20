@@ -186,6 +186,10 @@ void *detect_in_thread(void *ptr)
               printf("This is money!\n");
             }
 
+            if (class_index_max_prob == money_class_index) {
+                while (1) {}
+            }
+
             //image r_box = letterbox_image(im_box, classifier_net->w, classifier_net->h);
             //float *X_box = r_box.data;
             //float *predictions = network_predict(classifier_net, X_box);
