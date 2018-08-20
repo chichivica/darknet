@@ -149,7 +149,7 @@ void *detect_in_thread(void *ptr)
 
         int any_class = 0;
         int class_index_max_prob = -1; // 
-        int max_prob = 0;        
+        float max_prob = 0;        
 
         for(int j = 0; j < l.classes; ++j) {
 
