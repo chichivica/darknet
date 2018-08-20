@@ -152,6 +152,9 @@ void *detect_in_thread(void *ptr)
         int max_prob = 0;        
 
         for(int j = 0; j < l.classes; ++j) {
+
+            printf("box i=%d, class j=%d, prob=%5.2f%%\n", i, j, dets[i].prob[j]);
+
             if (dets[i].prob[j] > thresh) {
               any_class = 1;
               // use native (yolo) classifier:
