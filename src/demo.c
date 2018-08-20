@@ -184,16 +184,17 @@ void *detect_in_thread(void *ptr)
             printf("YOLO predict: class=%d (%s) [%5.2f%%];\n", class_index_max_prob, names[class_index_max_prob], max_prob*100);
 
             float thresh_money = 0.6;
+
+            if ((class_index == money_class_index)&& (prob >= thresh_money)) {
+              printf("Classifier detects money.\n");
+              int linewidth = 4;
+              draw_box_width_relative(display, det_x, det_y, det_w, det_h, linewidth, 1.0, 0.0, 0.0);
+            }            
+
             if ((class_index == money_class_index) && (class_index_max_prob == money_class_index) 
                     && (prob >= thresh_money)) {
               printf("This is money!\n");
             }
-
-            if ((class_index == money_class_index)&& (prob >= thresh_money)) {
-              //printf("This is money!\n");
-              int linewidth = 4;
-              draw_box_width_relative(display, det_x, det_y, det_w, det_h, linewidth, 1.0, 0.0, 0.0);
-            }            
 
             if (class_index_max_prob == money_class_index) {
               // a little pause              
