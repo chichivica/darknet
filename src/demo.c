@@ -180,8 +180,8 @@ void *detect_in_thread(void *ptr)
 
             float prob;            
             int class_index = predict_class(im_box, classifier_net, &prob);
-            printf("classifier:   class=%d (%s) [%5.2f%%];\n", class_index, names[class_index], prob);
-            printf("YOLO predict: class=%d (%s) [%5.2f%%];\n", class_index_max_prob, names[class_index_max_prob], max_prob);
+            printf("classifier:   class=%d (%s) [%5.2f%%];\n", class_index, names[class_index], prob*100);
+            printf("YOLO predict: class=%d (%s) [%5.2f%%];\n", class_index_max_prob, names[class_index_max_prob], max_prob*100);
 
             float thresh_money = 0.6;
             if ((class_index == money_class_index) && (class_index_max_prob == money_class_index) 

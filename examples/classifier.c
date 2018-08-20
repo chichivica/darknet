@@ -18,7 +18,7 @@ int predict_class(image im, network *classifier_net, float *pprob)
     if(classifier_net->hierarchy) hierarchy_predictions(predictions, classifier_net->outputs, classifier_net->hierarchy, 1, 1);
     top_k(predictions, classifier_net->outputs, top, indexes);
     int class_index = indexes[0];
-    float prob = predictions[class_index]*100;
+    float prob = predictions[class_index];
     *pprob = prob;
     //printf("classifier: %5.2f%%: class_id=%d;\n", prob, class_index);
 
