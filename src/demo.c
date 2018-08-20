@@ -187,7 +187,7 @@ void *detect_in_thread(void *ptr)
             float thresh_money = 0.6;
 
             if ((class_index == money_class_index) && (prob >= thresh_money)) {
-              //printf("Classifier detects money.\n");
+              printf("Classifier detects money.\n");
               int linewidth = 6;
               printf("det: %f %f %f %f\n", det_x, det_y, det_w, det_h);
               draw_box_width_relative(display, det_x, det_y, det_w, det_h, linewidth, 0.0, 0.0, 0.0);
