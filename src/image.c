@@ -211,6 +211,7 @@ void draw_box_width(image a, int x1, int y1, int x2, int y2, int w, float r, flo
 
 void draw_box_width_relative(image im, float x, float y, float w, float h, int linewidth, float r, float g, float b)
 {
+    /* the function is used in *detect_in_thread to draw results of a classifier */
     int left  = (int) ((x - w/2.) * im.w) - 20;
     int right = (int) ((x + w/2.) * im.w) + 20;
     int top   = (int) ((y - h/2.) * im.h) - 20;

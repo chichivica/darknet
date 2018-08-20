@@ -175,6 +175,7 @@ void *detect_in_thread(void *ptr)
             float det_y = dets[i].bbox.y;
             float det_w = dets[i].bbox.w;
             float det_h = dets[i].bbox.h;
+            printf("det: %f %f %f %f\n", det_x, det_y, det_w, det_h);
             image im_box = 
                 get_piece_of_image_rectangle(display, det_x, det_y, det_w, det_h);
 
