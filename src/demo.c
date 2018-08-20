@@ -274,9 +274,9 @@ void demo(char *cfgfile, char *weightfile, float thresh, int cam_index, const ch
     set_batch_network(net, 1);
     //-------------
     //char *classifier_cfgfile = "cfg/money_tiny_test.cfg";
-    //char *classifier_weightfile = "../money_tiny_459.weights"; 
+    //char *classifier_weightfile = "../money_tiny.weights"; 
     char *classifier_cfgfile = "cfg/money_darknet19.cfg";
-    char *classifier_weightfile = "../money_darknet19_2710.weights"; 
+    char *classifier_weightfile = "../money_darknet19.weights"; 
     
     classifier_net = load_network(classifier_cfgfile, classifier_weightfile, 0);
     set_batch_network(classifier_net, 1);
