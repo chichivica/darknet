@@ -175,7 +175,7 @@ void *detect_in_thread(void *ptr)
             float det_y = dets[i].bbox.y;
             float det_w = dets[i].bbox.w;
             float det_h = dets[i].bbox.h;
-            printf("det: %f %f %f %f\n", det_x, det_y, det_w, det_h);
+            //printf("det: %f %f %f %f\n", det_x, det_y, det_w, det_h);
             image im_box = 
                 get_piece_of_image_rectangle(display, det_x, det_y, det_w, det_h);
 
@@ -189,6 +189,7 @@ void *detect_in_thread(void *ptr)
             //if ((class_index == money_class_index) && (prob >= thresh_money)) {
               //printf("Classifier detects money.\n");
               int linewidth = 6;
+              printf("det: %f %f %f %f\n", det_x, det_y, det_w, det_h);
               draw_box_width_relative(display, det_x, det_y, det_w, det_h, linewidth, 1.0, 0.0, 0.0);
             //}            
 
