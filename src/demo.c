@@ -178,12 +178,14 @@ void *detect_in_thread(void *ptr)
             image im_box = 
                 get_piece_of_image_rectangle(display, det_x, det_y, det_w, det_h);
 
-            float prob;
+            float prob;            
             int class_index = predict_class(im_box, classifier_net, &prob);
             printf("classifier:   class=%d (%s) [%5.2f%%];\n", class_index, names[class_index], prob);
             printf("YOLO predict: class=%d (%s) [%5.2f%%];\n", class_index_max_prob, names[class_index_max_prob], max_prob);
 
-            if ((class_index == money_class_index) && (class_index_max_prob == money_class_index)) {
+            float thresh_money = 0.6;
+            if ((class_index == money_class_index) && (class_index_max_prob == money_class_index) 
+                    && (prob >= thresh_money)) {
               printf("This is money!\n");
             }
 
