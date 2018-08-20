@@ -135,11 +135,13 @@ void *detect_in_thread(void *ptr)
     printf("Objects:\n\n");
     image display = buff[(buff_index+2) % 3];
 
+    draw_detections(display, dets, nboxes, demo_thresh, demo_names, demo_alphabet, demo_classes);
+
     //--------------- ***
     int top = 1;
     int *indexes = calloc(top, sizeof(int));
     char **names = demo_names;
-    int money_class_index = 0;
+    int money_class_index = 0;    
 
     for(int i = 0; i < nboxes; ++i){
         //char labelstr[4096] = {0};
@@ -153,8 +155,7 @@ void *detect_in_thread(void *ptr)
 
         for(int j = 0; j < l.classes; ++j) {
 
-            printf("box i=%d, class j=%d, prob=%5.2f%%\n", i, j, dets[i].prob[j]);
-
+            //printf("box i=%d, class j=%d, prob=%5.2f%%\n", i, j, dets[i].prob[j]);
             if (dets[i].prob[j] > thresh) {
               any_class = 1;
               // use native (yolo) classifier:
@@ -187,7 +188,10 @@ void *detect_in_thread(void *ptr)
             }
 
             if (class_index_max_prob == money_class_index) {
-                while (1) {}
+              // a little pause
+              for(int i0=0; i0<10000; i0++) {
+                for(int i1=0; i1<10000; i1++) { }
+              }
             }
 
             //image r_box = letterbox_image(im_box, classifier_net->w, classifier_net->h);
@@ -205,7 +209,6 @@ void *detect_in_thread(void *ptr)
         }
     }
     //---------------
-    draw_detections(display, dets, nboxes, demo_thresh, demo_names, demo_alphabet, demo_classes);
     free_detections(dets, nboxes);
 
     demo_index = (demo_index + 1)%demo_frame;
