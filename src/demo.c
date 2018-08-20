@@ -189,9 +189,7 @@ void *detect_in_thread(void *ptr)
 
             if (class_index_max_prob == money_class_index) {
               // a little pause
-              for(int i0=0; i0<10000; i0++) {
-                for(int i1=0; i1<10000; i1++) { }
-              }
+              
             }
 
             //image r_box = letterbox_image(im_box, classifier_net->w, classifier_net->h);
