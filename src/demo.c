@@ -182,8 +182,8 @@ void *detect_in_thread(void *ptr)
 
             float prob;            
             int class_index = predict_class(im_box, classifier_net, &prob);
-            printf("classifier:   class=%d (%s) [%5.2f%%];\n", class_index, names[class_index], prob*100);
-            printf("YOLO predict: class=%d (%s) [%5.2f%%];\n", class_index_max_prob, names[class_index_max_prob], max_prob*100);
+            printf("YOLO prediction: class=%d (%s) [%5.2f%%];\n", class_index_max_prob, names[class_index_max_prob], max_prob*100);
+            printf("classifier: class=%d (%s) [%5.2f%%];\n", class_index, names[class_index], prob*100);
 
             float thresh_money = 0.6;
             int yolo_detects_target = 0;
@@ -197,9 +197,8 @@ void *detect_in_thread(void *ptr)
             }
 
             if (classifier_detects_target) {
-              printf("Classifier detects money.\n");
               int linewidth = 4;
-              printf("det: %f %f %f %f\n", det_x, det_y, det_w, det_h);
+              printf("Classifier detected money in the box %f %f %f %f\n", det_x, det_y, det_w, det_h);
               draw_box_width_relative(display, det_x, det_y, det_w, det_h, linewidth, 0.0, 0.6, 0.8);
             }            
 
