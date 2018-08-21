@@ -213,10 +213,10 @@ void draw_box_width_relative(image im, double x, double y, double w, double h, i
 {
     /* the function is used in *detect_in_thread to draw results of a classifier */
 
-    int left  = (int) ((x - w/2.) * im.w) - 20;
-    int right = (int) ((x + w/2.) * im.w) + 20;
-    int top   = (int) ((y - h/2.) * im.h) - 20;
-    int bot   = (int) ((y + h/2.) * im.h) + 20;
+    int left  = (int) ((x - w/2.) * im.w) - 14;
+    int right = (int) ((x + w/2.) * im.w) + 14;
+    int top   = (int) ((y - h/2.) * im.h) - 14;
+    int bot   = (int) ((y + h/2.) * im.h) + 14;
 
     if(left < 0) left = 0;
     if(right > im.w-1) right = im.w - 1;
@@ -224,7 +224,7 @@ void draw_box_width_relative(image im, double x, double y, double w, double h, i
     if(bot > im.h-1) bot = im.h - 1;
 
     float red = 0.0, green = 0.4, blue = 0.8;
-    draw_box_width(im, left, top, right, bot, linewidth, red, green, blue);
+    draw_box_width(im, left, top, right, bot, linewidth, r, g, b);
 }
 
 //---------
