@@ -877,7 +877,7 @@ void test_detector(char *datacfg, char *cfgfile, char *weightfile, char *filenam
                 float prob;            
                 int class_index = predict_class(im_box, classifier_net, &prob);                    
 
-                printf("classifier: %5.2f%%: %s\n", predictions[class_index]*100, names[class_index]);
+                printf("classifier:   class=%d (%s) [%5.2f%%];\n", class_index, names[class_index], prob*100);
             }
         }
         // --------
