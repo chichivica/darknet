@@ -223,10 +223,6 @@ void draw_box_width_relative(image im, double x, double y, double w, double h, i
     if(top < 0) top = 0;
     if(bot > im.h-1) bot = im.h - 1;
 
-    printf("im: %d %d\n", im.w, im.h);
-    printf("%f %f %f %f\n", x, y, w, h);
-    printf("%d %d %d %d\n", left, right, top, bot);
-
     //float red = 1.0, green = 0.0, blue = 0.0;
     draw_box_width(im, left, top, right, bot, linewidth, r, g, b);
 }

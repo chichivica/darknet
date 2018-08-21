@@ -166,7 +166,8 @@ void *detect_in_thread(void *ptr)
             }
         }
 
-        // use external classifier (tiny, darknet19 or else)
+        // -----
+        // Insertion of an external classifier (tiny, darknet19 or else)
         if (any_class) {
 
             printf("i=%d: ", i);
@@ -203,24 +204,12 @@ void *detect_in_thread(void *ptr)
             }            
 
             if (yolo_detects_target && classifier_detects_target) {
-              printf("This is money!\n");
+              printf("<<< Both ones detects money >>>\n");
             }
 
             if (yolo_detects_target) {
-              // a little pause              
+              // do a little pause              
             }
-
-            //image r_box = letterbox_image(im_box, classifier_net->w, classifier_net->h);
-            //float *X_box = r_box.data;
-            //float *predictions = network_predict(classifier_net, X_box);
-            //if(classifier_net->hierarchy) hierarchy_predictions(predictions, classifier_net->outputs, classifier_net->hierarchy, 1, 1);
-            //top_k(predictions, classifier_net->outputs, top, indexes);
-            //for(int k = 0; k < top; ++k) {
-             //   int index = indexes[k];
-                //printf("classifier: %5.2f%%: %s\n", predictions[index]*100, names[index]);
-            //}
-            //if(r_box.data != im_box.data) free_image(r_box);
-            //free_image(im_box); 
                       
         }
     }

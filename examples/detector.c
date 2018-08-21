@@ -856,7 +856,7 @@ void test_detector(char *datacfg, char *cfgfile, char *weightfile, char *filenam
         if (nms) do_nms_obj(dets, nboxes, l.classes, nms);
 //        if (nms) do_nms_sort(dets, nboxes, l.classes, nms);        
 
-        // ------------ ***
+        // Insertion of an external classifier 
         for(int i = 0; i < nboxes; ++i){
             //char labelstr[4096] = {0};
             //int class = -1;
@@ -874,19 +874,10 @@ void test_detector(char *datacfg, char *cfgfile, char *weightfile, char *filenam
                 image im_box = 
                     get_piece_of_image_rectangle(im, det_x, det_y, det_w, det_h);
 
-                image r_box = letterbox_image(im_box, classifier_net->w, classifier_net->h);
-                float *X_box = r_box.data;
-                float *predictions = network_predict(classifier_net, X_box);
-                if(classifier_net->hierarchy) hierarchy_predictions(predictions, classifier_net->outputs, classifier_net->hierarchy, 1, 1);
-                top_k(predictions, classifier_net->outputs, top, indexes);
-                for(i = 0; i < top; ++i){
-                    int index = indexes[i];
-                    //if(net->hierarchy) printf("%d, %s: %f, parent: %s \n",index, names[index], predictions[index], (net->hierarchy->parent[index] >= 0) ? names[net->hierarchy->parent[index]] : "Root");
-                    //else printf("%s: %f\n",names[index], predictions[index]);
-                    printf("classifier: %5.2f%%: %s\n", predictions[index]*100, names[index]);
-                }
-                if(r_box.data != im_box.data) free_image(r_box);
-                free_image(im_box);
+                float prob;            
+                int class_index = predict_class(im_box, classifier_net, &prob);                    
+
+                printf("classifier: %5.2f%%: %s\n", predictions[class_index]*100, names[class_index]);
             }
         }
         // --------
