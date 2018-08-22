@@ -170,7 +170,7 @@ void *detect_in_thread(void *ptr)
         // Insertion of an external classifier (tiny, darknet19 or else)
         if (any_class) {
 
-            printf("i=%d: ", i);
+            printf("box i=%d:\n", i);
 
             double det_x = dets[i].bbox.x;
             double det_y = dets[i].bbox.y;
@@ -183,7 +183,7 @@ void *detect_in_thread(void *ptr)
             float prob;            
             int class_index = predict_class(im_box, classifier_net, &prob);
             printf("YOLO prediction: class=%d (%s) [%5.2f%%];\n", class_index_max_prob, names[class_index_max_prob], max_prob*100);
-            printf("classifier: class=%d (%s) [%5.2f%%];\n", class_index, names[class_index], prob*100);
+            printf("classifier net:  class=%d (%s) [%5.2f%%];\n", class_index, names[class_index], prob*100);
 
             float thresh_money = 0.6;
             int yolo_detects_target = 0;
