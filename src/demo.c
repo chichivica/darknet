@@ -199,7 +199,7 @@ void *detect_in_thread(void *ptr)
             if (classifier_detects_target) {
               int linewidth = 4;
               printf("* classifier detected money in the box %f %f %f %f\n", det_x, det_y, det_w, det_h);
-              draw_box_width_relative(display, det_x, det_y, det_w, det_h, linewidth, 0.0, 0.6, 0.8);
+              draw_box_width_relative(display, det_x, det_y, det_w, det_h, linewidth, 0.0f, 0.6f, 0.8f);
             }            
 
             if (yolo_detects_target && classifier_detects_target) {
