@@ -209,11 +209,30 @@ void draw_box_width(image a, int x1, int y1, int x2, int y2, int w, float r, flo
 
 //----------
 
-void draw_box_width_relative(image im, double x, double y, double w, double h, int linewidth, double r, double g, double b)
+void draw_box_width_relative(image im, double x, double y, double w, double h, int linewidth, double *rgb)
 {
     /* the function is used in *detect_in_thread to draw results of a classifier */
 
-    int border_shift = 14;
+    int border_shift = 10;
+    int left  = (int) ((x - w/2.) * im.w) - border_shift;
+    int right = (int) ((x + w/2.) * im.w) + border_shift;
+    int top   = (int) ((y - h/2.) * im.h) - border_shift;
+    int bot   = (int) ((y + h/2.) * im.h) + border_shift;
+
+    if(left < 0) left = 0;
+    if(right > im.w-1) right = im.w - 1;
+    if(top < 0) top = 0;
+    if(bot > im.h-1) bot = im.h - 1;
+
+    //float red = 0.0, green = 0.4, blue = 0.8;
+    double red = rgb[0], green = rgb[1], blue = rgb[2];
+    draw_box_width(im, left, top, right, bot, linewidth, red, green, blue);
+}
+
+void draw_box_width_relative_with_label(image im, double x, double y, double w, double h, int linewidth, double r, double g, double b, char* label)
+{
+
+    int border_shift = 10;
     int left  = (int) ((x - w/2.) * im.w) - border_shift;
     int right = (int) ((x + w/2.) * im.w) + border_shift;
     int top   = (int) ((y - h/2.) * im.h) - border_shift;
@@ -227,6 +246,14 @@ void draw_box_width_relative(image im, double x, double y, double w, double h, i
     //float red = 0.0, green = 0.4, blue = 0.8;
     double red = r, green = g, blue = b;
     draw_box_width(im, left, top, right, bot, linewidth, red, green, blue);
+
+    /*
+    if (alphabet) {
+        image label = get_label(alphabet, labelstr, (im.h*.03));
+        draw_label(im, top + width, left, label, rgb);
+        free_image(label);
+    }
+    */
 }
 
 //---------
