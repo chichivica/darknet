@@ -225,8 +225,9 @@ void draw_box_width_relative(image im, double x, double y, double w, double h, i
     if(bot > im.h-1) bot = im.h - 1;
 
     //float red = 0.0, green = 0.4, blue = 0.8;
-    double red = rgb[0], green = rgb[1], blue = rgb[2];
-    draw_box_width(im, left, top, right, bot, linewidth, red, green, blue);
+    //double red = r, green = g, blue = b;
+    draw_box_width(im, left, top, right, bot, linewidth, rgb[0], rgb[1], rgb[2]);
+    //draw_box_width(im, left, top, right, bot, linewidth, red, green, blue);
 }
 
 void draw_box_width_relative_with_label(image im, double x, double y, double w, double h, int linewidth, double r, double g, double b, char* label)
