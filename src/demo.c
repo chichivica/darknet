@@ -180,30 +180,45 @@ void *detect_in_thread(void *ptr)
             image im_box = 
                 get_piece_of_image_rectangle(display, det_x, det_y, det_w, det_h);
 
-            float prob_target;            
-            int class_index = predict_class(im_box, classifier_net, &prob_target);
+            float prob_classifier;            
+            int class_index = predict_class(im_box, classifier_net, &prob_classifier);
             printf("YOLO prediction: class=%d (%s) [%5.2f%%];\n", class_index_max_prob, names[class_index_max_prob], max_prob*100);
-            printf("classifier net:  class=%d (%s) [%5.2f%%];\n", class_index, names[class_index], prob_target*100);
+            printf("classifier net:  class=%d (%s) [%5.2f%%];\n", class_index, names[class_index], prob_classifier*100);
 
             float thresh_target = 0.6;
             int yolo_detects_target = 0;
             int classifier_detects_target = 0;
 
-            if ((class_index == money_class_index) && (prob_target >= thresh_target)) {
-              classifier_detects_target = 1;
+            if (class_index_max_prob == money_class_index) {
+              // if yolo detected money
+              yolo_detects_target = 1;
               flag_detection = 1;
             }
-            if (class_index_max_prob == money_class_index) {
-              yolo_detects_target = 1;
+
+            if ((class_index == money_class_index) && (prob_classifier >= thresh_target)) {
+              // if yolo detected money
+              classifier_detects_target = 1;
+              flag_detection = 2;
             }
 
             if (classifier_detects_target) {
-              int linewidth = 4;
               printf("* classifier detected money in the box %f %f %f %f\n", det_x, det_y, det_w, det_h);
+            }            
+
+            if (yolo_detects_target || classifier_detects_target) {
               //draw_box_width_relative(display, det_x, det_y, det_w, det_h, linewidth, 0.0, 0.8, 0.99);
-              double color[3] = {0.0, 0.7, 0.99};
+              int linewidth = 4;
               char labelstr[256] = {0};
-              sprintf(labelstr, "%.2lf", prob_target);
+
+              if (class_index == money_class_index) {
+                double color[3] = {0.0, 0.7, 0.99};
+                sprintf(labelstr, "%.2lf", prob_classifier);
+              }
+              else {
+                double color[3] = {0.7, 0.1, 0.1};
+                sprintf(labelstr, "err %.2lf", prob_classifier);
+              }
+
               //draw_box_width_relative(display, dets[i].bbox, linewidth, color);
               draw_box_width_relative_label(display, dets[i].bbox, linewidth, color, labelstr, demo_alphabet);
 
@@ -388,7 +403,7 @@ void demo(char *cfgfile, char *weightfile, float thresh, int cam_index, const ch
     // *** Split output videos into two directories
     if (prefix) {
       char cmd[1024];
-      sprintf(cmd, "mv %s %d", prefix, flag_detection);
+      sprintf(cmd, "mv %s %d\n", prefix, flag_detection);
       printf(cmd);
       system(cmd);
     }
