@@ -200,7 +200,7 @@ void *detect_in_thread(void *ptr)
               int linewidth = 4;
               printf("* classifier detected money in the box %f %f %f %f\n", det_x, det_y, det_w, det_h);
               //draw_box_width_relative(display, det_x, det_y, det_w, det_h, linewidth, 0.0, 0.8, 0.99);
-              double rgb[3] = {0.0, 0.7, 0.99};
+              double rgb[3] = {0.8, 0.0, 0.99};
               char *label = "111";
               //draw_box_width_relative(display, det_x, det_y, det_w, det_h, linewidth, rgb);
               draw_box_width_relative(display, dets[i].bbox, linewidth, rgb);
