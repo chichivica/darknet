@@ -136,7 +136,7 @@ void *detect_in_thread(void *ptr)
     printf("Objects:\n\n");
     image display = buff[(buff_index+2) % 3];
 
-    draw_detections(display, dets, nboxes, demo_thresh, demo_names, demo_alphabet, demo_classes);
+    //draw_detections(display, dets, nboxes, demo_thresh, demo_names, demo_alphabet, demo_classes);
 
     //--------------- ***
     //int *indexes = calloc(top, sizeof(int));
