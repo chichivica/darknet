@@ -386,11 +386,12 @@ void demo(char *cfgfile, char *weightfile, float thresh, int cam_index, const ch
 
     // -----------------
     // *** Split output videos into two directories
-    char cmd[1024];
-    sprintf(cmd, "mv output.avi %d", flag_detection);
-    printf(cmd);
-    system(cmd);
-    
+    if (prefix) {
+      char cmd[1024];
+      sprintf(cmd, "mv %s %d", prefix, flag_detection);
+      printf(cmd);
+      system(cmd);
+    }
 
 }
 
