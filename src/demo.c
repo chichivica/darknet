@@ -202,7 +202,8 @@ void *detect_in_thread(void *ptr)
               //draw_box_width_relative(display, det_x, det_y, det_w, det_h, linewidth, 0.0, 0.8, 0.99);
               double rgb[3] = {0.0, 0.7, 0.99};
               char *label = "111";
-              draw_box_width_relative(display, det_x, det_y, det_w, det_h, linewidth, rgb);
+              //draw_box_width_relative(display, det_x, det_y, det_w, det_h, linewidth, rgb);
+              draw_box_width_relative(display, dets[i].bbox, linewidth, rgb);
               //draw_box_width_relative_with_label(display, dets[i].bbox, linewidth, rgb, label, demo_alphabet);
             }            
 
