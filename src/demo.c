@@ -39,6 +39,7 @@ static int demo_total = 0;
 double demo_time;
 
 network *classifier_net; // ******
+int flag_detection = 0;  // flag is set if the target was detected
 
 detection *get_network_boxes(network *net, int w, int h, float thresh, float hier, int *map, int relative, int *num, int letter);
 
@@ -138,7 +139,6 @@ void *detect_in_thread(void *ptr)
     draw_detections(display, dets, nboxes, demo_thresh, demo_names, demo_alphabet, demo_classes);
 
     //--------------- ***
-    int top = 1;
     //int *indexes = calloc(top, sizeof(int));
     char **names = demo_names;
     int money_class_index = 0;    
@@ -190,7 +190,8 @@ void *detect_in_thread(void *ptr)
             int classifier_detects_target = 0;
 
             if ((class_index == money_class_index) && (prob_target >= thresh_target)) {
-              classifier_detects_target = 1;    
+              classifier_detects_target = 1;
+              flag_detection = 1;
             }
             if (class_index_max_prob == money_class_index) {
               yolo_detects_target = 1;
@@ -286,10 +287,10 @@ void demo(char *cfgfile, char *weightfile, float thresh, int cam_index, const ch
     //char *classifier_cfgfile = "cfg/money_tiny_test.cfg";
     //char *classifier_weightfile = "../money_tiny.weights"; 
     char *classifier_cfgfile = "cfg/money_darknet19.cfg";
-    char *classifier_weightfile = "../money_darknet19.weights"; 
-    
+    char *classifier_weightfile = "../money_darknet19.weights";     
     classifier_net = load_network(classifier_cfgfile, classifier_weightfile, 0);
     set_batch_network(classifier_net, 1);
+    flag_detection = 0;
     //-------------
     pthread_t detect_thread;
     pthread_t fetch_thread;
@@ -382,6 +383,14 @@ void demo(char *cfgfile, char *weightfile, float thresh, int cam_index, const ch
 
     cvReleaseVideoWriter(&writer);
     cvReleaseCapture(&cap);
+
+    // -----------------
+    // *** Split output videos into two directories
+    char cmd[1024];
+    sprintf(cmd, "mv output.avi %d", flag_detection);
+    system(cmd);
+    
+
 }
 
 /*
