@@ -230,6 +230,7 @@ void draw_box_width_relative(image im, double x, double y, double w, double h, i
     //draw_box_width(im, left, top, right, bot, linewidth, red, green, blue);
 }
 
+/*
 void draw_box_width_relative_with_label(image im, double x, double y, double w, double h, int linewidth, double r, double g, double b, char* label)
 {
 
@@ -248,14 +249,13 @@ void draw_box_width_relative_with_label(image im, double x, double y, double w, 
     double red = r, green = g, blue = b;
     draw_box_width(im, left, top, right, bot, linewidth, red, green, blue);
 
-    /*
     if (alphabet) {
         image label = get_label(alphabet, labelstr, (im.h*.03));
         draw_label(im, top + width, left, label, rgb);
         free_image(label);
     }
-    */
-}
+ }
+ */
 
 //---------
 
