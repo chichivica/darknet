@@ -192,7 +192,7 @@ void *detect_in_thread(void *ptr)
             if (class_index_max_prob == money_class_index) {
               // if yolo detected money
               yolo_detects_target = 1;
-              flag_detection = 1;
+              if (flag_detection < 1) flag_detection = 1;
             }
 
             if ((class_index == money_class_index) && (prob_classifier >= thresh_target)) {
