@@ -208,14 +208,16 @@ void *detect_in_thread(void *ptr)
             if (yolo_detects_target || classifier_detects_target) {
               //draw_box_width_relative(display, det_x, det_y, det_w, det_h, linewidth, 0.0, 0.8, 0.99);
               int linewidth = 4;
+              double color[3] = {0.0, 0.7, 0.99};
               char labelstr[256] = {0};
 
               if (class_index == money_class_index) {
-                double color[3] = {0.0, 0.7, 0.99};
                 sprintf(labelstr, "%.2lf", prob_classifier);
               }
               else {
-                double color[3] = {0.7, 0.1, 0.1};
+                color[0] = 0.7; 
+                color[1] = 0.1;
+                color[2] = 0.1;
                 sprintf(labelstr, "err %.2lf", prob_classifier);
               }
 
