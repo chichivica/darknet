@@ -196,7 +196,7 @@ void *detect_in_thread(void *ptr)
             }
 
             if ((class_index == money_class_index) && (prob_classifier >= thresh_target)) {
-              // if yolo detected money
+              // if classifier detected money
               classifier_detects_target = 1;
               flag_detection = 2;
             }
@@ -205,25 +205,21 @@ void *detect_in_thread(void *ptr)
               printf("* classifier detected money in the box %f %f %f %f\n", det_x, det_y, det_w, det_h);
             }            
 
-            if (yolo_detects_target || classifier_detects_target) {
-              //draw_box_width_relative(display, det_x, det_y, det_w, det_h, linewidth, 0.0, 0.8, 0.99);
+            //if (yolo_detects_target || classifier_detects_target) {
+            if (yolo_detects_target && classifier_detects_target) {
               int linewidth = 4;
               double color[3] = {0.0, 0.7, 0.99};
               char labelstr[256] = {0};
-
-              if (class_index == money_class_index) {
-                sprintf(labelstr, "%.2lf", prob_classifier);
-              }
-              else {
-                color[0] = 0.7; 
-                color[1] = 0.1;
-                color[2] = 0.1;
-                sprintf(labelstr, "err %.2lf", prob_classifier);
-              }
-
-              //draw_box_width_relative(display, dets[i].bbox, linewidth, color);
+              sprintf(labelstr, "%.2lf", prob_classifier);
               draw_box_width_relative_label(display, dets[i].bbox, linewidth, color, labelstr, demo_alphabet);
+            }            
 
+            if (yolo_detects_target && (!classifier_detects_target)) {
+              int linewidth = 4;
+              double color[3] = {0.7, 0.1, 0.4};
+              char labelstr[256] = {0};
+              sprintf(labelstr, "err %.2lf", prob_classifier);
+              draw_box_width_relative_label(display, dets[i].bbox, linewidth, color, labelstr, demo_alphabet);
             }            
 
             if (yolo_detects_target && classifier_detects_target) {
