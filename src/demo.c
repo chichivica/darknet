@@ -194,14 +194,12 @@ void *detect_in_thread(void *ptr)
 
             if (class_index_max_prob == money_class_index) {
               // if yolo detected money
-              yolo_detects_target = 1;
-              if (flag_detection < 1) flag_detection = 1;
+              yolo_detects_target = 1;              
             }
 
             if ((class_index == money_class_index) && (prob_classifier >= thresh_target)) {
               // if classifier detected money
-              classifier_detects_target = 1;
-              flag_detection = 2;
+              classifier_detects_target = 1;              
             }
 
             if (classifier_detects_target) {
@@ -217,13 +215,15 @@ void *detect_in_thread(void *ptr)
 
             if (classifier_detects_target && classifier_detects_target) {
               color[0] = 0.0; color[1] = 0.6; color[2] = 0.99; // blue
-              sprintf(labelstr, "%.2lf", prob_classifier);      
-              printf("<<< Both ones detects money >>>\n");        
+              sprintf(labelstr, "%.2lf", prob_classifier);     
+              printf("<<< Both ones detects money >>>\n");
+              flag_detection = 2;        
             }            
 
             if (yolo_detects_target && (!classifier_detects_target)) {
               color[0] = 0.8; color[1] = 0.1; color[2] = 0.2;  // red
               sprintf(labelstr, "err %.2lf", prob_classifier);
+              if (flag_detection < 1) flag_detection = 1;
             }
 
             if (!yolo_detects_target) {
@@ -240,7 +240,7 @@ void *detect_in_thread(void *ptr)
               draw_box_width_relative_label(display, dets[i].bbox, linewidth, color, labelstr, demo_alphabet);
             } 
             */    
-                 
+
             draw_box_width_relative_label(display, dets[i].bbox, linewidth, color, labelstr, demo_alphabet);
 
         }
