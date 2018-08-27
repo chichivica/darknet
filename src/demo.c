@@ -39,7 +39,10 @@ static int demo_total = 0;
 double demo_time;
 
 network *classifier_net; // ******
+int classifier_version = 2; // 1 or 2
 int flag_detection = 0;  // flag is set if the target was detected
+int predict_class(image im, network *classifier_net, float *pprob);
+void draw_box_width_relative_label(image im, box bbox, int linewidth, double *rgb, char* labelstr, image **alphabet);
 
 detection *get_network_boxes(network *net, int w, int h, float thresh, float hier, int *map, int relative, int *num, int letter);
 
@@ -206,30 +209,35 @@ void *detect_in_thread(void *ptr)
             }            
 
             //if (yolo_detects_target || classifier_detects_target) {
-            if (yolo_detects_target && classifier_detects_target) {
-              int linewidth = 4;
-              double color[3] = {0.0, 0.7, 0.99};
-              char labelstr[256] = {0};
-              sprintf(labelstr, "%.2lf", prob_classifier);
-              draw_box_width_relative_label(display, dets[i].bbox, linewidth, color, labelstr, demo_alphabet);
+
+            int flag_draw = 0;
+            int linewidth = 4;
+            double color[3];
+            char labelstr[256] = {0};
+
+            if (classifier_detects_target) {
+              color[0] = 0.0; color[1] = 0.7; color[2] = 0.99;
+              sprintf(labelstr, "%.2lf", prob_classifier);              
             }            
 
             if (yolo_detects_target && (!classifier_detects_target)) {
-              int linewidth = 4;
-              double color[3] = {0.7, 0.1, 0.4};
-              char labelstr[256] = {0};
+              color[0] = 0.8; color[1] = 0.1; color[2] = 0.2;
               sprintf(labelstr, "err %.2lf", prob_classifier);
-              draw_box_width_relative_label(display, dets[i].bbox, linewidth, color, labelstr, demo_alphabet);
-            }            
+            }
 
             if (yolo_detects_target && classifier_detects_target) {
               printf("<<< Both ones detects money >>>\n");
             }
 
-            if (yolo_detects_target) {
-              // do a little pause              
+            switch (classifier_version) {
+              case 1: flag_draw = 1; break;  //
+              case 2: if (yolo_detects_target) flag_draw = 1; break;
             }
-                      
+
+            if  (flag_draw && (yolo_detects_target || classifier_detects_target)) {
+              draw_box_width_relative_label(display, dets[i].bbox, linewidth, color, labelstr, demo_alphabet);
+            }          
+
         }
     }
     //---------------
