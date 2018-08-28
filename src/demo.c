@@ -421,7 +421,7 @@ void demo(char *cfgfile, char *weightfile, float thresh, int cam_index, const ch
       strcpy(log_file, prefix);
       strcat(log_file, ".txt");
       FILE *fp = fopen(log_file, "w");
-      fprintf(fp, "count: %d", count_both_detection);
+      fprintf(fp, "count: %d\n", count_both_detection);
       fclose(fp);
 
       // move files to directory
