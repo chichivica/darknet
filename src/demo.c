@@ -418,6 +418,7 @@ void demo(char *cfgfile, char *weightfile, float thresh, int cam_index, const ch
 
       // save count to txt file
       char log_file[1024] = "";
+      strcpy(log_file, prefix);
       strcat(log_file, ".txt");
       FILE *fp = fopen(log_file, "w");
       fprintf(fp, "count: %d", count_both_detection);
