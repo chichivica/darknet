@@ -41,6 +41,7 @@ double demo_time;
 network *classifier_net; // ******
 int classifier_version = 2; // 1 or 2
 int flag_detection = 0;  // flag is set if the target was detected
+int count_both_detection = 0;
 int predict_class(image im, network *classifier_net, float *pprob);
 void draw_box_width_relative_label(image im, box bbox, int linewidth, double *rgb, char* labelstr, image **alphabet);
 
@@ -217,7 +218,8 @@ void *detect_in_thread(void *ptr)
               color[0] = 0.0; color[1] = 0.6; color[2] = 0.99; // blue
               sprintf(labelstr, "%.2lf", prob_classifier);     
               printf("<<< Both ones detects money >>>\n");
-              flag_detection = 2;        
+              flag_detection = 2;
+              count_both_detection++;     
             }            
 
             if (yolo_detects_target && (!classifier_detects_target)) {
@@ -413,8 +415,17 @@ void demo(char *cfgfile, char *weightfile, float thresh, int cam_index, const ch
     // -----------------
     // *** Split output videos into two directories
     if (prefix) {
+
+      // save count to txt file
+      char log_file[1024] = "";
+      strcat(log_file, ".txt");
+      FILE *fp = fopen(log_file, "w");
+      fprintf(fp, "count: %d", count_both_detection);
+      fclose(fp);
+
+      // move files to directory
       char cmd[1024];
-      sprintf(cmd, "mv %s %d\n", prefix, flag_detection);
+      sprintf(cmd, "mv %s %s %d\n", prefix, log_file, flag_detection);
       printf(cmd);
       system(cmd);
     }
