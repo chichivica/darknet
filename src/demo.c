@@ -213,7 +213,7 @@ void *detect_in_thread(void *ptr)
             double color[3];
             char labelstr[256] = {0};
 
-            if (classifier_detects_target && classifier_detects_target) {
+            if (yolo_detects_target && classifier_detects_target) {
               color[0] = 0.0; color[1] = 0.6; color[2] = 0.99; // blue
               sprintf(labelstr, "%.2lf", prob_classifier);     
               printf("<<< Both ones detects money >>>\n");
