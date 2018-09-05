@@ -5,6 +5,8 @@
 #include <libgen.h>
 #include <layer.h>
 
+#include "image.h"
+
 static int coco_ids[] = {1,2,3,4,5,6,7,8,9,10,11,13,14,15,16,17,18,19,20,21,22,23,24,25,27,28,31,32,33,34,35,36,37,38,39,40,41,42,43,44,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,67,70,72,73,74,75,76,77,78,79,80,81,82,84,85,86,87,88,89,90};
 
 
@@ -808,6 +810,16 @@ void test_detector(char *datacfg, char *cfgfile, char *weightfile, char *filenam
     image **alphabet = load_alphabet();
     network *net = load_network(cfgfile, weightfile, 0);
     set_batch_network(net, 1);
+
+    //----------
+    char *classifier_cfgfile = "cfg/money_tiny_test.cfg";
+    char *classifier_weightfile = "../money_tiny_459.weights"; 
+    network *classifier_net = load_network(classifier_cfgfile, classifier_weightfile, 0);
+    set_batch_network(classifier_net, 1);
+    int top = 1;
+    int *indexes = calloc(top, sizeof(int));
+    //----------
+
     srand(2222222);
     double time;
     char buff[256];
@@ -842,7 +854,33 @@ void test_detector(char *datacfg, char *cfgfile, char *weightfile, char *filenam
         detection *dets = get_network_boxes(net, im.w, im.h, thresh, hier_thresh, 0, 1, &nboxes, letter_box);
         //printf("%d\n", nboxes);
         if (nms) do_nms_obj(dets, nboxes, l.classes, nms);
-//        if (nms) do_nms_sort(dets, nboxes, l.classes, nms);
+//        if (nms) do_nms_sort(dets, nboxes, l.classes, nms);        
+
+        // Insertion of an external classifier 
+        for(int i = 0; i < nboxes; ++i){
+            //char labelstr[4096] = {0};
+            //int class = -1;
+
+            int any_class = 0;
+            for(int j = 0; j < l.classes; ++j) {
+                if (dets[i].prob[j] > thresh) any_class = 1;
+            }
+
+            if (any_class) {
+                double det_x = dets[i].bbox.x;
+                double det_y = dets[i].bbox.y;
+                double det_w = dets[i].bbox.w;
+                double det_h = dets[i].bbox.h;
+                image im_box = 
+                    get_piece_of_image_rectangle(im, det_x, det_y, det_w, det_h);
+
+                float prob;            
+                int class_index = predict_class(im_box, classifier_net, &prob);                    
+
+                printf("classifier:   class=%d (%s) [%5.2f%%];\n", class_index, names[class_index], prob*100);
+            }
+        }
+        // --------
         draw_detections(im, dets, nboxes, thresh, names, alphabet, l.classes);
         free_detections(dets, nboxes);
         if(outfile){

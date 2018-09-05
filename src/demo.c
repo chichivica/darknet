@@ -7,6 +7,7 @@
 #include "parser.h"
 #include "box.h"
 #include "image.h"
+#include "classifier.h"
 #include "demo.h"
 #include <sys/time.h>
 
@@ -36,6 +37,12 @@ static float *avg;
 static int demo_done = 0;
 static int demo_total = 0;
 double demo_time;
+
+network *classifier_net; // ******
+int flag_detection = 0;  // flag is set if the target was detected
+int count_both_detection = 0;
+int predict_class(image im, network *classifier_net, float *pprob);
+void draw_box_width_relative_label(image im, box bbox, int linewidth, double *rgb, char* labelstr, image **alphabet);
 
 detection *get_network_boxes(network *net, int w, int h, float thresh, float hier, int *map, int relative, int *num, int letter);
 
@@ -131,7 +138,114 @@ void *detect_in_thread(void *ptr)
     printf("\nFPS:%.1f\n",fps);
     printf("Objects:\n\n");
     image display = buff[(buff_index+2) % 3];
-    draw_detections(display, dets, nboxes, demo_thresh, demo_names, demo_alphabet, demo_classes);
+
+    //draw_detections(display, dets, nboxes, demo_thresh, demo_names, demo_alphabet, demo_classes);
+
+    //--------------- ***
+    //int *indexes = calloc(top, sizeof(int));
+    char **names = demo_names;
+    int money_class_index = 0;    
+
+    for(int i = 0; i < nboxes; ++i){
+        //char labelstr[4096] = {0};
+        //int class = -1;        
+
+        double thresh = 0.05;
+
+        int any_class = 0;
+        int class_index_max_prob = -1; // 
+        float max_prob = 0;        
+
+        for(int j = 0; j < l.classes; ++j) {
+
+            //printf("box i=%d, class j=%d, prob=%5.2f%%\n", i, j, dets[i].prob[j]);
+            if (dets[i].prob[j] > thresh) {
+              any_class = 1;
+              // use native (yolo) classifier:
+              if (dets[i].prob[j] > max_prob) {
+                max_prob = dets[i].prob[j];
+                class_index_max_prob = j;
+              }
+            }
+        }
+
+        // -----
+        // Insertion of an external classifier (tiny, darknet19 or else)
+        if (any_class) {
+
+            printf("box i=%d:\n", i);
+
+            double det_x = dets[i].bbox.x;
+            double det_y = dets[i].bbox.y;
+            double det_w = dets[i].bbox.w;
+            double det_h = dets[i].bbox.h;
+            //printf("det: %f %f %f %f\n", det_x, det_y, det_w, det_h);
+            image im_box = 
+                get_piece_of_image_rectangle(display, det_x, det_y, det_w, det_h);
+
+            float prob_classifier;            
+            int class_index = predict_class(im_box, classifier_net, &prob_classifier);
+            printf("YOLO prediction: class=%d (%s) [%5.2f%%];\n", class_index_max_prob, names[class_index_max_prob], max_prob*100);
+            printf("classifier net:  class=%d (%s) [%5.2f%%];\n", class_index, names[class_index], prob_classifier*100);
+
+            float thresh_target = 0.6;
+            int yolo_detects_target = 0;
+            int classifier_detects_target = 0;
+
+            if (class_index_max_prob == money_class_index) {
+              // if yolo detected money
+              yolo_detects_target = 1;              
+            }
+
+            if ((class_index == money_class_index) && (prob_classifier >= thresh_target)) {
+              // if classifier detected money
+              classifier_detects_target = 1;              
+            }
+
+            if (classifier_detects_target) {
+              printf("* classifier detected money in the box %f %f %f %f\n", det_x, det_y, det_w, det_h);
+            }            
+
+            //int flag_draw = 0;
+            int linewidth = 4;
+            double color[3];
+            char labelstr[256] = {0};
+
+            if (yolo_detects_target && classifier_detects_target) {
+              color[0] = 0.0; color[1] = 0.6; color[2] = 0.99; // blue
+              sprintf(labelstr, "%.2lf", prob_classifier);     
+              printf("<<< Both ones detects money >>>\n");
+              flag_detection = 2;
+              count_both_detection++;     
+            }            
+
+            if (yolo_detects_target && (!classifier_detects_target)) {
+              color[0] = 0.8; color[1] = 0.1; color[2] = 0.2;  // red
+              sprintf(labelstr, "err %.2lf", prob_classifier);
+              if (flag_detection < 1) flag_detection = 1;
+            }
+
+            if (!yolo_detects_target) {
+              color[0] = 0.1; color[1] = 0.8; color[2] = 0.0; // green
+              sprintf(labelstr, "-");
+            }
+
+            /*
+            int classifier_version = 2; // 1 or 2
+            switch (classifier_version) {
+              case 1: flag_draw = 1; break;  //
+              case 2: if (yolo_detects_target) flag_draw = 1; break;
+            }
+            if  (flag_draw && (yolo_detects_target || classifier_detects_target)) {
+              draw_box_width_relative_label(display, dets[i].bbox, linewidth, color, labelstr, demo_alphabet);
+            } 
+            */    
+
+            draw_box_width_relative_label(display, dets[i].bbox, linewidth, color, labelstr, demo_alphabet);
+
+        }
+    }
+    //---------------
     free_detections(dets, nboxes);
 
     demo_index = (demo_index + 1)%demo_frame;
@@ -195,6 +309,15 @@ void demo(char *cfgfile, char *weightfile, float thresh, int cam_index, const ch
     printf("Demo\n");
     net = load_network(cfgfile, weightfile, 0);
     set_batch_network(net, 1);
+    //-------------
+    //char *classifier_cfgfile = "cfg/money_tiny_test.cfg";
+    //char *classifier_weightfile = "../money_tiny.weights"; 
+    char *classifier_cfgfile = "cfg/money_darknet19.cfg";
+    char *classifier_weightfile = "../money_darknet19.weights";     
+    classifier_net = load_network(classifier_cfgfile, classifier_weightfile, 0);
+    set_batch_network(classifier_net, 1);
+    flag_detection = 0;
+    //-------------
     pthread_t detect_thread;
     pthread_t fetch_thread;
 
@@ -286,6 +409,26 @@ void demo(char *cfgfile, char *weightfile, float thresh, int cam_index, const ch
 
     cvReleaseVideoWriter(&writer);
     cvReleaseCapture(&cap);
+
+    // -----------------
+    // *** Split output videos into two directories
+    if (prefix) {
+
+      // save count to txt file
+      char log_file[1024] = "";
+      strcpy(log_file, prefix);
+      strcat(log_file, ".txt");
+      FILE *fp = fopen(log_file, "w");
+      fprintf(fp, "count: %d\n", count_both_detection);
+      fclose(fp);
+
+      // move files to directory
+      char cmd[1024];
+      sprintf(cmd, "mv %s %s %d\n", prefix, log_file, flag_detection);
+      printf(cmd);
+      system(cmd);
+    }
+
 }
 
 /*
