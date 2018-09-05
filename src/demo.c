@@ -39,7 +39,6 @@ static int demo_total = 0;
 double demo_time;
 
 network *classifier_net; // ******
-int classifier_version = 2; // 1 or 2
 int flag_detection = 0;  // flag is set if the target was detected
 int count_both_detection = 0;
 int predict_class(image im, network *classifier_net, float *pprob);
@@ -207,9 +206,7 @@ void *detect_in_thread(void *ptr)
               printf("* classifier detected money in the box %f %f %f %f\n", det_x, det_y, det_w, det_h);
             }            
 
-            //if (yolo_detects_target || classifier_detects_target) {
-
-            int flag_draw = 0;
+            //int flag_draw = 0;
             int linewidth = 4;
             double color[3];
             char labelstr[256] = {0};
@@ -234,6 +231,7 @@ void *detect_in_thread(void *ptr)
             }
 
             /*
+            int classifier_version = 2; // 1 or 2
             switch (classifier_version) {
               case 1: flag_draw = 1; break;  //
               case 2: if (yolo_detects_target) flag_draw = 1; break;
