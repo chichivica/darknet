@@ -152,7 +152,7 @@ void *detect_in_thread(void *ptr)
 
             }
         }
-        if (detected_class > 0) {
+        if (detected_class >= 0) {
             box b = dets[i].bbox;
 
             double left  = (b.x-b.w/2.);
