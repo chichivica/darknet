@@ -1566,7 +1566,7 @@ image collapse_images_vert(image *ims, int n)
         free_image(copy);
     }
     return filters;
-} 
+}
 
 image collapse_images_horz(image *ims, int n)
 {
@@ -1602,7 +1602,7 @@ image collapse_images_horz(image *ims, int n)
         free_image(copy);
     }
     return filters;
-} 
+}
 
 void show_image_normalized(image im, const char *name)
 {
@@ -1635,4 +1635,62 @@ void free_image(image m)
     if(m.data){
         free(m.data);
     }
+}
+
+/// fetches rectangular region from source image
+/// \return
+image get_piece_of_image_rectangle(image source, double det_x, double det_y, double det_w, double det_h) {
+    /**
+     * please do note, image stored in detected_item.im->data
+     * as distinctly grouped channels between rows:
+     * rrrr|rrrr|rrrr:gggg|gggg|gggg:bbbb|bbbb|bbbb
+     * here: c = 3
+     *       w = 4
+     *       h = 3
+     */
+    int w, h, c;
+
+    w = source.w;
+    h = source.h;
+    c = source.c;
+
+    int r_w, r_h;
+    int left = (int) (det_x - det_w * 0.5) * w;
+    int right = (int) (det_x + det_w * 0.5) * w;
+
+    int top = (int) (det_y - det_h * 0.5) * h;
+    int bot = (int) (det_y + det_h * 0.5) * h;
+
+    if (left < 0) left = 0;
+    if (right > w - 1) right = w - 1;
+    if (top < 0) top = 0;
+    if (bot > h - 1) bot = h - 1;
+
+
+    r_w = right - left + 1;
+    r_h = bot - top + 1;
+
+    image im = make_image(r_w, r_h, c);
+
+    int i, k;
+
+    for (k = 0; k < c; ++k) {
+        for (i = 0; i < w * h; ++i) {
+            int current_column = i % w;
+            int current_row = (i - i % w) / w;
+
+            if (current_row >= top && current_row <= bot &&
+                current_column >= left && current_column <= right) {
+
+                int d_r = current_row - top;
+                int d_c = current_column - left;
+
+                int dest = d_c + d_r * r_w + k * r_w * r_h;
+                im.data[dest] = *(source.data + (i + k * w * h));
+            }
+        }
+    }
+
+
+    return im;
 }
